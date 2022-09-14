@@ -3,12 +3,12 @@ import Home from '../views/Home.vue'
 
 const routes: Readonly<RouteRecordRaw[]> = [
   {
-    path: '/',
+    path: '/home',
     name: 'Home',
     component: Home
   },
   {
-    path: '/login',
+    path: '/',
     name: 'Login',
     component: () =>
       import(/* webpackChunkName: "about" */ '../views/Login.vue')

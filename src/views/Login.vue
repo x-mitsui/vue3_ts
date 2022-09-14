@@ -1,5 +1,13 @@
 <template>
-  <div class="login">
-    <h1>This is an login page</h1>
-  </div>
+  <div class="login"></div>
 </template>
+<style lang="less">
+.login {
+  width: 100%;
+  height: 100%;
+  background: url('../assets/img/login-bg.svg');
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+</style>

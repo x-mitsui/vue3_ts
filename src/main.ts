@@ -3,20 +3,25 @@ import App from './App.vue'
 import router from './router'
 import store from './store'
 import { service } from './service'
-import { AxiosRequestConfig, AxiosResponse } from 'axios'
-service
-  .request({
-    url: '/home/multidata',
-    requestInterceptor(config: AxiosRequestConfig) {
-      console.log('单个请求拦截')
-      return config
-    },
-    responseInterceptor(res: AxiosResponse) {
-      console.log('单个响应拦截')
-      return res
-    }
-  })
-  .then((res) => {
-    console.log(res)
-  })
+import 'normalize.css'
+import './assets/css/index.less'
+
+// service
+//   .request({
+//     url: '/home/multidata',
+//     requestInterceptor: (config) => {
+//       console.log('单独请求的config')
+//       if (config.headers) {
+//         config.headers['token'] = '123'
+//       }
+//       return config
+//     },
+//     responseInterceptor: (res) => {
+//       console.log('单独响应的response')
+//       return res
+//     }
+//   })
+//   .then((res) => {
+//     console.log(res)
+//   })
 createApp(App).use(store).use(router).mount('#app')

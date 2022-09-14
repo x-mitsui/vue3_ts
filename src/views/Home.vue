@@ -1,6 +1,5 @@
 <template>
   <div class="home">
-    <img alt="Vue logo" src="../assets/logo.png" />
     <el-button type="success">I am ElButton</el-button>
   </div>
 </template>

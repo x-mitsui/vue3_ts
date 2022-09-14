@@ -3,18 +3,26 @@
     "target": "esnext",
     "module": "esnext",
     "strict": true,
+    // 不对jsx做处理
     "jsx": "preserve",
     "importHelpers": true,
+    // 按照node的方式解析模块，比如自动给路径加后缀
     "moduleResolution": "node",
+    // 跳过第三方库的类型检测
     "skipLibCheck": true,
+    // esmodule和commonjs混合使用
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
+    // 要不要生成sourceMap
     "sourceMap": true,
+    // 解析时基于的当前路径
     "baseUrl": ".",
     "types": ["webpack-env", "node", "element-plus/global"],
     "paths": {
-      "@/*": ["src/*"]
+      "@/*": ["src/*"],
+      "component/*": ["src/component/*"]
     },
+    // 可以在指定项目中使用哪些库的类型
     "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
   },
   "include": [
