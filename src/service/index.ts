@@ -1,44 +1,21 @@
-import axios from 'axios'
-import { AxiosInstance, AxiosResponse } from 'axios'
-import { AxiosRequestConfig_ext } from './types'
-
-class XRequest {
-  private _instance: AxiosInstance
-  constructor(config: AxiosRequestConfig_ext) {
-    this._instance = axios.create(config)
-    this.interceptorUtil(config) // 可为某一实例添加拦截器配置
-
-    // 为所有实例添加拦截器
-    this.interceptorUtil({
-      requestInterceptor(config) {
-        console.log('共有requestInterceptor')
-        return config
-      },
-      responseInterceptor(config) {
-        console.log('共有responseInterceptor')
-        return config
+import { XRequest } from './request/index'
+import type { AxiosRequestConfig, AxiosResponse } from 'axios'
+const service = new XRequest({
+  baseURL: 'http://123.207.32.32:8000',
+  requestInterceptor(config: AxiosRequestConfig) {
+    console.log('单个实例请求拦截')
+    const token = ''
+    if (token) {
+      if (config.headers) {
+        config.headers.Authorization = token
       }
-    })
-  }
-  request(config: AxiosRequestConfig_ext): Promise<AxiosResponse> {
-    config = this.interceptorUtil(config)
-    return this._instance.request(config)
-  }
-  interceptorUtil(config: AxiosRequestConfig_ext): AxiosRequestConfig_ext {
-    if (config.requestInterceptor) {
-      this._instance.interceptors.request.use(
-        config.requestInterceptor,
-        config.requestInterceptorCatch
-      )
-    }
-    if (config.responseInterceptor) {
-      this._instance.interceptors.response.use(
-        config.responseInterceptor,
-        config.responseInterceptorCatch
-      )
     }
     return config
+  },
+  responseInterceptor(res) {
+    console.log('单个实例响应拦截', res)
+    return res
   }
-}
+})
 
-export { XRequest }
+export { service }
