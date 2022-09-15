@@ -5,7 +5,13 @@ import store from './store'
 import { service } from './service'
 import 'normalize.css'
 import './assets/css/index.less'
+import * as ElementPlusIconsVue from '@element-plus/icons-vue'
 
+const app = createApp(App)
+app.use(store)
+app.use(router)
+
+app.mount('#app')
 // service
 //   .request({
 //     url: '/home/multidata',
@@ -24,4 +30,3 @@ import './assets/css/index.less'
 //   .then((res) => {
 //     console.log(res)
 //   })
-createApp(App).use(store).use(router).mount('#app')
