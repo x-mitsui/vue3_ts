@@ -1,14 +1,17 @@
 <template>
-  <el-form :model="FormData" :rules="rules">
-    <el-form-item label="账号" prop="account">
-      <el-input v-model="FormData.account" type="" autocomplete="off" />
+  <el-form :model="FormData">
+    <el-form-item label="手机号" prop="account">
+      <el-input v-model="FormData.phoneNum" type="" autocomplete="off" />
     </el-form-item>
-    <el-form-item label="密码" prop="password">
-      <el-input
-        v-model="FormData.password"
-        type="password"
-        autocomplete="off"
-      />
+    <el-form-item label="验证码" prop="password">
+      <div class="verify-box">
+        <el-input
+          v-model="FormData.verifyCode"
+          type="password"
+          autocomplete="off"
+        />
+        <el-button type="primary"> 获取验证码 </el-button>
+      </div>
     </el-form-item>
   </el-form>
 </template>
@@ -19,13 +22,23 @@ import { rules } from './configs/account-config'
 export default defineComponent({
   setup() {
     const FormData = reactive({
-      account: '',
-      password: ''
+      phoneNum: '',
+      verifyCode: ''
     })
+    const loginByPhone = (isRemember: boolean) => {
+      console.log('loginByPhone----PhoneForm')
+      // todo:待补充
+    }
 
-    return { FormData, rules }
+    return { FormData, rules, loginByPhone }
   }
 })
 </script>
 
-<style scoped></style>
+<style scoped>
+.verify-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+</style>

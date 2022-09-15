@@ -1,7 +1,6 @@
 <template>
   <div class="login">
     <div>
-      <h1 class="title">后台管理系统</h1>
       <LoginPanel />
     </div>
   </div>
@@ -28,8 +27,5 @@ export default defineComponent({
   align-items: center;
 
   transform: translateY(-120px);
-  .title {
-    text-align: center;
-  }
 }
 </style>

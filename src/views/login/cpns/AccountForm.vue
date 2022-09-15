@@ -39,6 +39,7 @@ export default defineComponent({
             LocalCache.set('account', '')
             LocalCache.set('password', '')
           }
+
           // 解构，变为非响应式的普通值
           store.dispatch('LoginModule/accountLoginAction', { ...formData })
         }
