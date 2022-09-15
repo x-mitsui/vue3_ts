@@ -32,13 +32,14 @@
 import { defineComponent, ref } from 'vue'
 import { User, Iphone } from '@element-plus/icons-vue'
 import AccountForm from './AccountForm.vue'
+import { LocalCache } from '@/utils/LocalCache'
 export default defineComponent({
   setup() {
-    const isRemember = ref(true)
+    const isRemember = ref(LocalCache.get('isRememberPassword') ?? true)
     const acc_ref = ref<InstanceType<typeof AccountForm>>()
     const loginByAccount = () => {
-      console.log('acc_ref.value,', acc_ref.value)
-      acc_ref.value?.loginByAccount()
+      acc_ref.value?.loginByAccount(isRemember.value)
+      LocalCache.set('isRememberPassword', isRemember.value)
     }
     return { isRemember, loginByAccount, acc_ref }
   },
