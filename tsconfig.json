@@ -20,7 +20,7 @@
     "types": ["webpack-env", "node", "element-plus/global"],
     "paths": {
       "@/*": ["src/*"],
-      "component/*": ["src/component/*"]
+      "component/*": ["@/component/*"]
     },
     // 可以在指定项目中使用哪些库的类型
     "lib": ["esnext", "dom", "dom.iterable", "scripthost"]
