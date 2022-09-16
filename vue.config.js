@@ -13,6 +13,17 @@ module.exports = {
         components: '@/components' //"@"对应"src"已经在vue源码中配置了
       }
     },
+    devServer: {
+      proxy: {
+        '^/api': {
+          target: 'http://152.136.185.210:5000',
+          pathRewrite: {
+            '^/api': ''
+          },
+          changeOrigin: true
+        }
+      }
+    },
     //配置webpack自动按需引入element-plus，
     plugins: [
       AutoImport({
