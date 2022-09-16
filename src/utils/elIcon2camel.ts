@@ -5,6 +5,6 @@ export const elIcon2camel = (iconName: string) => {
   for (const tem of arr) {
     rltStr += tem[0].toUpperCase() + tem.substring(1)
   }
-  console.log('rltStr:', rltStr)
+
   return rltStr
 }

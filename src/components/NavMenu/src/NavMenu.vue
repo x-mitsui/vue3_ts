@@ -2,7 +2,7 @@
   <div class="nav-menu-wrapper">
     <div class="logo-wrapper">
       <img src="~@/assets/img/logo.svg" alt="logo" class="logo" />
-      <h2 class="title">Vue3+TS</h2>
+      <h2 class="title" v-show="!collapse">Vue3+TS</h2>
     </div>
 
     <el-menu
@@ -11,6 +11,7 @@
       background-color="#0c2135"
       text-color="#b7bdc3"
       active-text-color="#fff"
+      :collapse="collapse"
     >
       <template v-for="menu of userMenus">
         <el-sub-menu
@@ -38,14 +39,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, defineProps } from 'vue'
 import { useStore } from '@/store'
 import { elIcon2camel } from '@/utils/elIcon2camel'
 export default defineComponent({
+  props: ['collapse'],
   setup() {
     const store = useStore()
     const userMenus = computed(() => store.state.LoginModule.userMenus)
     const cut = elIcon2camel
+
     return { userMenus, cut }
   }
 })
@@ -65,6 +68,9 @@ export default defineComponent({
     .title {
       color: white;
     }
+  }
+  .el-menu {
+    border-right: none;
   }
   .el-aside {
     overflow-x: hidden;
