@@ -39,7 +39,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed, defineProps } from 'vue'
+import { defineComponent, computed } from 'vue'
 import { useStore } from '@/store'
 import { elIcon2camel } from '@/utils/elIcon2camel'
 export default defineComponent({
