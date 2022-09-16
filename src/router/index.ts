@@ -17,6 +17,10 @@ const routes: Readonly<RouteRecordRaw[]> = [
     name: 'Login',
     component: () =>
       import(/* webpackChunkName: "about" */ '../views/login/login.vue')
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    component: import('../views/404/404.vue')
   }
 ]
 
