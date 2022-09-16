@@ -33,7 +33,6 @@
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
-import { User, Iphone } from '@element-plus/icons-vue'
 import AccountForm from './AccountForm.vue'
 import { LocalCache } from '@/utils/LocalCache'
 import PhoneForm from './PhoneForm.vue'
@@ -55,8 +54,6 @@ export default defineComponent({
     return { isRemember, acc_ref, pho_ref, curTabName, loginByAccount }
   },
   components: {
-    User,
-    Iphone,
     AccountForm,
     PhoneForm
   }
