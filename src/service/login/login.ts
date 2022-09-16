@@ -1,4 +1,3 @@
-import { userInfo } from 'os'
 import { request } from '../index'
 import type { IAccount, IDataType, ILoginResult } from './types'
 

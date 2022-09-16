@@ -26,7 +26,7 @@ export default defineComponent({
       verifyCode: ''
     })
     const loginByPhone = (isRemember: boolean) => {
-      console.log('loginByPhone----PhoneForm')
+      console.log('loginByPhone----PhoneForm', isRemember)
       // todo:待补充
     }
 
