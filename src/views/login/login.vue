@@ -1,8 +1,6 @@
 <template>
   <div class="login">
-    <div>
-      <LoginPanel />
-    </div>
+    <LoginPanel />
   </div>
 </template>
 

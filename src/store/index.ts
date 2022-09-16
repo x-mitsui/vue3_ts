@@ -1,7 +1,7 @@
 import { createStore } from 'vuex'
 import { IRootState } from './types'
 import { LoginModule } from './login/login'
-export default createStore<IRootState>({
+export const store = createStore<IRootState>({
   state: {
     counter: 0
   },
@@ -9,3 +9,4 @@ export default createStore<IRootState>({
   actions: {},
   modules: { LoginModule }
 })
+store.dispatch('LoginModule/loadLocalStorage')

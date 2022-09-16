@@ -1,4 +1,5 @@
 // service统一出口
+import { LocalCache } from '@/utils/LocalCache'
 import { XRequest } from './request'
 import { BASE_URL, TIME_OUT } from './request/config'
 
@@ -8,7 +9,7 @@ export const request = new XRequest({
   interceptors: {
     requestInterceptor: (config: any) => {
       // 携带token的拦截
-      const token = ''
+      const token = LocalCache.get('token')
       if (token) {
         config.headers.Authorization = `Bearer ${token}`
       }
