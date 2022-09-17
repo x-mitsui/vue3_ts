@@ -9,10 +9,11 @@ import './assets/css/index.less'
 
 const app = createApp(App)
 app.use(store)
+
+restoreLocalStorage()
 app.use(router)
 for (const [key, component] of Object.entries(AllIcons)) {
   app.component(key, component)
 }
-// router注册完使用
-restoreLocalStorage()
+
 app.mount('#app')
