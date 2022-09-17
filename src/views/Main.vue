@@ -8,7 +8,11 @@
         <el-header class="page-header">
           <nav-header @changeMenuWidth="changeMenuWidth" />
         </el-header>
-        <el-main class="page-content"></el-main>
+        <el-main class="page-content">
+          <div class="page-content-bg">
+            <router-view />
+          </div>
+        </el-main>
       </el-container>
     </el-container>
   </div>
@@ -49,6 +53,9 @@ export default defineComponent({
 
 .page-content {
   height: calc(100% - 48px);
+  .page-content-bg {
+    background-color: #fff;
+  }
 }
 
 .el-header,

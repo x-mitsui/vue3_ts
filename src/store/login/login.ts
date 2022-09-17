@@ -31,7 +31,7 @@ export const LoginModule: Module<ILoginState, IRootState> = {
       // 动态注册路由
       const routes = convertMenus2Routes(state.userMenus)
       routes.forEach((route) => router.addRoute('main', route))
-      console.log('router:', router.getRoutes())
+      // console.log('router:', router.getRoutes())
     }
   },
   actions: {

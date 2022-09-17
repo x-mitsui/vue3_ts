@@ -6,7 +6,7 @@ export const convertMenus2Routes = (userMenus: any[]): RouteRecordRaw[] => {
   routeFiles.keys().forEach((key) => {
     allRoutes.push(require('../router/main' + key.substring(1)).default)
   })
-  console.log('allRoutes:', allRoutes)
+  // console.log('allRoutes:', allRoutes)
 
   // 2.比对收集
   const routes: RouteRecordRaw[] = []
@@ -23,6 +23,5 @@ export const convertMenus2Routes = (userMenus: any[]): RouteRecordRaw[] => {
     }
   }
   getRoutes_R(userMenus)
-  console.log('routes:', routes)
   return routes
 }
