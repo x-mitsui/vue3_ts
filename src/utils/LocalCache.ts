@@ -10,6 +10,9 @@ class LocalCacheClass {
   set(key: string, value: unknown) {
     return window.localStorage.setItem(key, JSON.stringify(value))
   }
+  clear() {
+    window.localStorage.clear()
+  }
 
   static create(): LocalCacheClass {
     if (LocalCacheClass.instance) {
