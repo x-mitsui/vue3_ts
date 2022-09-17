@@ -9,6 +9,7 @@ import {
 } from '@/service/login/login'
 import { LocalCache } from '@/utils/LocalCache'
 import router from '@/router'
+import { convertMenus2Routes } from '@/utils/convertMenus2Routes'
 
 export const LoginModule: Module<ILoginState, IRootState> = {
   namespaced: true,
@@ -27,6 +28,10 @@ export const LoginModule: Module<ILoginState, IRootState> = {
     },
     setUserMenus(state, payload) {
       state.userMenus = payload
+      // 动态注册路由
+      const routes = convertMenus2Routes(state.userMenus)
+      routes.forEach((route) => router.addRoute('main', route))
+      console.log('router:', router.getRoutes())
     }
   },
   actions: {

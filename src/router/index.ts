@@ -9,12 +9,13 @@ const routes: Readonly<RouteRecordRaw[]> = [
   },
   {
     path: '/main',
-    name: 'Main',
-    component: Main
+    name: 'main',
+    component: Main,
+    children: []
   },
   {
     path: '/login',
-    name: 'Login',
+    name: 'login',
     component: () =>
       import(/* webpackChunkName: "about" */ '../views/login/login.vue')
   },

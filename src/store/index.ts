@@ -9,7 +9,9 @@ export const store = createStore<IRootState>({
   actions: {},
   modules: { LoginModule }
 })
-store.dispatch('LoginModule/loadLocalStorage')
+export const resetLocalStorage = () => {
+  store.dispatch('LoginModule/loadLocalStorage')
+}
 
 export const useStore = (): Store<IStoreType> => {
   return originUseStore()

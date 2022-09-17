@@ -27,10 +27,16 @@
             v-for="item of menu.children"
             :key="item.id"
             :index="item.id + ''"
+            @click="showRouterView(item.url)"
             >{{ item.name }}</el-menu-item
           >
         </el-sub-menu>
-        <el-menu-item v-else :key="menu.id + menu.name" :index="menu.id + ''">
+        <el-menu-item
+          v-else
+          :key="menu.id + menu.name"
+          :index="menu.id + ''"
+          @click="showRouterView(menu.url)"
+        >
           {{ menu.name }}
         </el-menu-item>
       </template>
@@ -42,14 +48,19 @@
 import { defineComponent, computed } from 'vue'
 import { useStore } from '@/store'
 import { elIcon2camel } from '@/utils/elIcon2camel'
+import { useRouter } from 'vue-router'
 export default defineComponent({
   props: ['collapse'],
   setup() {
     const store = useStore()
+    const router = useRouter()
     const userMenus = computed(() => store.state.LoginModule.userMenus)
     const cut = elIcon2camel
+    const showRouterView = (url: string) => {
+      router.push(url ?? '/notfoundzzz')
+    }
 
-    return { userMenus, cut }
+    return { userMenus, cut, showRouterView }
   }
 })
 </script>
