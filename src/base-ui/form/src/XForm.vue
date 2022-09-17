@@ -68,6 +68,6 @@ defineProps({
 <style scoped>
 .el-form-1 {
   /* 和el-form-item的下边距相同 */
-  padding-top: 22px;
+  padding: 22px 15px 0;
 }
 </style>

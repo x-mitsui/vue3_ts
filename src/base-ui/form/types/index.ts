@@ -19,3 +19,10 @@ export interface IFormItem {
   // 其它
   otherOptions?: any
 }
+
+export interface IForm {
+  FormData: IFormItem[]
+  labelWidth?: string
+  itemStyle?: any
+  colSpans?: any
+}
