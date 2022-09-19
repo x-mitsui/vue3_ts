@@ -1,32 +1,28 @@
+<script lang="ts" setup>
+import { ref, defineEmits } from 'vue'
+import UserInfo from './cpns/UserInfo.vue'
+import Breadcrumb from './cpns/Breadcrumb.vue'
+
+const emit = defineEmits(['changeMenuWidth'])
+
+const isFold = ref(false)
+const click = () => {
+  isFold.value = !isFold.value
+  emit('changeMenuWidth')
+}
+</script>
+
 <template>
   <div class="nav-header-wrapper">
     <el-icon @click="click" class="fold-item">
       <component :is="isFold ? 'Expand' : 'Fold'" />
     </el-icon>
     <div class="user-wrapper">
-      <div>Breadcrumb</div>
+      <Breadcrumb />
       <UserInfo />
     </div>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent, ref } from 'vue'
-import UserInfo from './cpns/UserInfo.vue'
-export default defineComponent({
-  emits: ['changeMenuWidth'],
-  setup(props, { emit }) {
-    const isFold = ref(false)
-    const click = () => {
-      isFold.value = !isFold.value
-      emit('changeMenuWidth')
-    }
-
-    return { isFold, click, UserInfo }
-  },
-  components: { UserInfo }
-})
-</script>
 
 <style lang="less" scoped>
 .nav-header-wrapper {
