@@ -9,10 +9,11 @@
 </template>
 
 <script lang="ts" setup>
-import { defineProps } from 'vue'
+import { IUser } from '@/service/system/types'
+import { defineProps, PropType } from 'vue'
 
 defineProps({
-  usersList: { type: Array, required: true },
+  usersList: { type: Array as PropType<IUser[] | undefined>, required: true },
   propsList: { type: Array, required: true }
 })
 </script>
