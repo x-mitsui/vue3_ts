@@ -42,7 +42,7 @@ export default defineComponent({
 
           // 解构，变为非响应式的普通值
           const { account: name, password } = { ...formData }
-          store.dispatch('LoginModule/accountLoginAction', { name, password })
+          store.dispatch('login/accountLoginAction', { name, password })
         }
       })
     }

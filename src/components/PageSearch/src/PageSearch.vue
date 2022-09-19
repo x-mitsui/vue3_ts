@@ -44,6 +44,7 @@ defineProps({
   .footer {
     text-align: right;
     padding-right: 18px;
+    padding-bottom: 18px;
   }
 }
 </style>

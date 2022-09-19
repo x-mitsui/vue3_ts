@@ -38,7 +38,7 @@ defineProps({
     default: null
   }
 })
-const userinfo = store.state.LoginModule.userinfo
+const userinfo = store.state.login.userinfo
 const handleCommand = (command: string | number) => {
   if (command === 'exit') {
     LocalCache.clear()

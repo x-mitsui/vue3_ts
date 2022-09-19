@@ -56,7 +56,7 @@ export default defineComponent({
     const store = useStore()
     const route = useRoute()
     const router = useRouter()
-    const userMenus = computed(() => store.state.LoginModule.userMenus)
+    const userMenus = computed(() => store.state.login.userMenus)
     const cut = elIcon2camel
     const showRouterView = (url: string) => {
       router.push(url ?? '/notfoundzzz')

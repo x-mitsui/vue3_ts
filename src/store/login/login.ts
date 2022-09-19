@@ -11,7 +11,7 @@ import { LocalCache } from '@/utils/LocalCache'
 import router from '@/router'
 import { convertMenus2Routes } from '@/utils/convertMenus2Routes'
 
-export const LoginModule: Module<ILoginState, IRootState> = {
+export const login: Module<ILoginState, IRootState> = {
   namespaced: true,
   state: {
     token: '',

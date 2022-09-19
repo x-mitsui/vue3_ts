@@ -1,21 +1,47 @@
 <template>
   <div class="user">
     <PageSearch :formInfo="formInfo" />
-    <div class="content">content</div>
+    <div class="content">
+      <x-table :usersList="userListRef" :propsList="propsList" />
+    </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent, onMounted, computed } from 'vue'
+import { useStore } from '@/store'
 import { formInfo } from './configs/formInfo'
 import { PageSearch } from '@/components/PageSearch'
+import { XTable } from '@/base-ui/table'
 export default defineComponent({
   name: 'user',
   setup() {
-    return { formInfo }
+    const store = useStore()
+    const userListRef = computed(() => store.state.system.usersList)
+    const userCountRef = computed(() => store.state.system.usersCount)
+
+    onMounted(() => {
+      store.dispatch('system/getUsersAction', {
+        offset: 0,
+        size: 10
+        // name: 'w',
+        // cellphone: 4
+      })
+    })
+
+    const propsList = [
+      { label: '姓名', prop: 'name', minWidth: '100' },
+      { label: '真实姓名', prop: 'realname', minWidth: '100' },
+      { label: '手机号', prop: 'cellphone', minWidth: '100' },
+      { label: '状态', prop: 'enable', minWidth: '100' },
+      { label: '创建时间', prop: 'createAt', minWidth: '100' },
+      { label: '更新时间', prop: 'updateAt', minWidth: '100' }
+    ]
+    return { formInfo, userListRef, userCountRef, propsList }
   },
   components: {
-    PageSearch
+    PageSearch,
+    XTable
   }
 })
 </script>
