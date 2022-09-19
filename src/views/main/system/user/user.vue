@@ -1,32 +1,33 @@
 <template>
   <div class="user">
-    <div class="search">
-      <XForm :="formInfo" v-model="FormValues" />
-    </div>
+    <PageSearch :formInfo="formInfo" />
     <div class="content">content</div>
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
-import { XForm } from '@/base-ui/form'
 import { formInfo } from './configs/formInfo'
+import { PageSearch } from '@/components/PageSearch'
 export default defineComponent({
   name: 'user',
   setup() {
-    const FormValues = ref({
-      id: '',
-      username: '',
-      password: '',
-      hobby: '',
-      time: ''
-    })
-    return { formInfo, FormValues }
+    return { formInfo }
   },
   components: {
-    XForm
+    PageSearch
   }
 })
 </script>
 
-<style scoped></style>
+<style lang="less" scoped>
+.title {
+  color: red;
+  line-height: 2.5em;
+}
+
+.footer {
+  text-align: right;
+  padding-right: 18px;
+}
+</style>

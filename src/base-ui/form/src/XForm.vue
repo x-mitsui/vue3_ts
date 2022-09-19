@@ -1,40 +1,44 @@
 <template>
-  <el-form :model="FormData" :label-width="labelWidth" class="el-form-1">
-    <el-row :gutter="10">
-      <el-col v-bind="colSpans" v-for="item of FormData" :key="item.label">
-        <el-form-item :label="item.label" :style="itemStyle">
-          <template v-if="item.type === 'input' || item.type === 'password'">
-            <el-input
-              :type="item.type"
-              :placeholder="item.placeholder"
-              :show-password="item.type === 'password'"
-              :="item.otherOptions"
-              v-model="values[`${item.field}`]"
-            />
-          </template>
-          <template v-else-if="item.type === 'select'">
-            <el-select :type="item.type" v-model="values[`${item.field}`]">
-              <el-option
-                v-for="op of item.options"
-                :key="op.value"
-                :label="op.label"
-                :value="op.value"
+  <div class="x-form">
+    <slot name="header"></slot>
+    <el-form :model="FormData" :label-width="labelWidth" class="el-form-1">
+      <el-row :gutter="10">
+        <el-col v-bind="colSpans" v-for="item of FormData" :key="item.label">
+          <el-form-item :label="item.label" :style="itemStyle">
+            <template v-if="item.type === 'input' || item.type === 'password'">
+              <el-input
+                :type="item.type"
+                :placeholder="item.placeholder"
+                :show-password="item.type === 'password'"
+                :="item.otherOptions"
+                v-model="values[`${item.field}`]"
+              />
+            </template>
+            <template v-else-if="item.type === 'select'">
+              <el-select :type="item.type" v-model="values[`${item.field}`]">
+                <el-option
+                  v-for="op of item.options"
+                  :key="op.value"
+                  :label="op.label"
+                  :value="op.value"
+                  :="item.otherOptions"
+                >
+                </el-option>
+              </el-select>
+            </template>
+            <template v-else-if="item.type === 'datepicker'">
+              <el-date-picker
+                v-model="values[`${item.field}`]"
                 :="item.otherOptions"
               >
-              </el-option>
-            </el-select>
-          </template>
-          <template v-else-if="item.type === 'datepicker'">
-            <el-date-picker
-              v-model="values[`${item.field}`]"
-              :="item.otherOptions"
-            >
-            </el-date-picker>
-          </template>
-        </el-form-item>
-      </el-col>
-    </el-row>
-  </el-form>
+              </el-date-picker>
+            </template>
+          </el-form-item>
+        </el-col>
+      </el-row>
+    </el-form>
+    <slot name="footer"></slot>
+  </div>
 </template>
 
 <script setup lang="ts">
