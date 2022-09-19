@@ -11,10 +11,10 @@
 import { defineComponent } from 'vue'
 
 export default defineComponent({
-  setup(props) {
-    // console.log(props)
-    return {}
-  }
+  // setup(props) {
+  // console.log(props)
+  // return {}
+  // }
 })
 </script>
 

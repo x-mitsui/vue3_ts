@@ -6,7 +6,7 @@
     </div>
 
     <el-menu
-      default-active="2"
+      :default-active="defaultValue"
       class="el-aside"
       background-color="#0c2135"
       text-color="#b7bdc3"
@@ -45,22 +45,28 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, computed } from 'vue'
+import { defineComponent, computed, ref, onMounted } from 'vue'
 import { useStore } from '@/store'
 import { elIcon2camel } from '@/utils/elIcon2camel'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
+import { findDefaultValue } from '@/utils/findDefaultValue'
 export default defineComponent({
   props: ['collapse'],
   setup() {
     const store = useStore()
+    const route = useRoute()
     const router = useRouter()
     const userMenus = computed(() => store.state.LoginModule.userMenus)
     const cut = elIcon2camel
     const showRouterView = (url: string) => {
       router.push(url ?? '/notfoundzzz')
     }
+    const defaultValue = ref<string>()
+    onMounted(() => {
+      defaultValue.value = findDefaultValue(userMenus.value, route.path) + ''
+    })
 
-    return { userMenus, cut, showRouterView }
+    return { userMenus, cut, defaultValue, showRouterView }
   }
 })
 </script>
