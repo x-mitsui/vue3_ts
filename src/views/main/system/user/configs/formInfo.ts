@@ -3,21 +3,25 @@ import { IForm } from '@/base-ui/form'
 export const formInfo: IForm = {
   FormData: [
     {
+      field: 'id',
       label: 'id',
       placeholder: '请输入id',
       type: 'input'
     },
     {
+      field: 'username',
       label: '用户名',
       placeholder: '请输入用户名',
       type: 'input'
     },
     {
+      field: 'password',
       label: '密码',
       placeholder: '请输入密码',
       type: 'password'
     },
     {
+      field: 'hobby',
       label: '喜欢的运动',
       placeholder: '请选择喜欢的运动',
       type: 'select',
@@ -28,6 +32,7 @@ export const formInfo: IForm = {
       ]
     },
     {
+      field: 'time',
       label: '创建时间',
       placeholder: '请选择创建时间的范围',
       type: 'datepicker',

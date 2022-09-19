@@ -9,10 +9,11 @@
               :placeholder="item.placeholder"
               :show-password="item.type === 'password'"
               :="item.otherOptions"
+              v-model="values[`${item.field}`]"
             />
           </template>
           <template v-else-if="item.type === 'select'">
-            <el-select :type="item.type">
+            <el-select :type="item.type" v-model="values[`${item.field}`]">
               <el-option
                 v-for="op of item.options"
                 :key="op.value"
@@ -24,7 +25,11 @@
             </el-select>
           </template>
           <template v-else-if="item.type === 'datepicker'">
-            <el-date-picker :="item.otherOptions"> </el-date-picker>
+            <el-date-picker
+              v-model="values[`${item.field}`]"
+              :="item.otherOptions"
+            >
+            </el-date-picker>
           </template>
         </el-form-item>
       </el-col>
@@ -33,9 +38,9 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, PropType } from 'vue'
+import { defineProps, PropType, ref, watch, defineEmits } from 'vue'
 import { IFormItem } from '../types'
-defineProps({
+const props = defineProps({
   FormData: {
     type: Array as PropType<IFormItem[]>,
     default: () => [] //这里为什么一定要用箭头函数，因为要用上下文this
@@ -61,8 +66,21 @@ defineProps({
       sm: 24,
       xm: 24
     })
+  },
+  modelValue: {
+    type: Object,
+    default: () => ({})
   }
 })
+const emit = defineEmits(['update:modelValue'])
+const values = ref({ ...props.modelValue })
+watch(
+  values,
+  (newV) => {
+    emit('update:modelValue', newV)
+  },
+  { deep: true }
+)
 </script>
 
 <style scoped>

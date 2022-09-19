@@ -10,6 +10,7 @@
 // }
 type FormType = 'input' | 'password' | 'select' | 'datepicker'
 export interface IFormItem {
+  field: string
   label: string
   rules?: any[]
   placeholder?: string

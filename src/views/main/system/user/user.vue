@@ -1,20 +1,27 @@
 <template>
   <div class="user">
     <div class="search">
-      <XForm :="formInfo" />
+      <XForm :="formInfo" v-model="FormValues" />
     </div>
     <div class="content">content</div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { XForm } from '@/base-ui/form'
 import { formInfo } from './configs/formInfo'
 export default defineComponent({
   name: 'user',
   setup() {
-    return { formInfo }
+    const FormValues = ref({
+      id: '',
+      username: '',
+      password: '',
+      hobby: '',
+      time: ''
+    })
+    return { formInfo, FormValues }
   },
   components: {
     XForm
