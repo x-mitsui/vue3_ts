@@ -30,38 +30,39 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, PropType } from 'vue'
+import { defineProps, PropType, onMounted, computed } from 'vue'
+import { useStore } from '@/store'
 import { XTable } from '@/base-ui/table'
-import { IUser } from '@/service/system/types'
 import { contentType } from '@/views/main/system/user/types/content.type'
 
 defineProps({
   contentConfig: {
     type: Object as PropType<contentType>,
     required: true
-  },
-  usersList: {
-    type: Array as PropType<IUser[] | undefined>,
-    required: true
   }
+})
+const store = useStore()
+const usersList = computed(() => store.state.system.usersList)
+const userCount = computed(() => store.state.system.usersCount)
+
+onMounted(() => {
+  store.dispatch('system/getUsersAction', {
+    offset: 0,
+    size: 10
+    // name: 'w',
+    // cellphone: 4
+  })
 })
 </script>
 
 <style lang="less" scoped>
-.title {
-  color: red;
-  line-height: 2.5em;
-}
-
-.footer {
-  text-align: right;
-  padding-right: 18px;
-}
-.operate {
-  display: flex;
-  justify-content: center;
-  .el-button {
-    padding: 0;
+.page-content {
+  .operate {
+    display: flex;
+    justify-content: center;
+    .el-button {
+      padding: 0;
+    }
   }
 }
 </style>

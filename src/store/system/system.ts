@@ -2,7 +2,7 @@ import type { IRootState } from '../types'
 import type { ISystemState } from './types'
 import type { Module } from 'vuex'
 
-import router from '@/router'
+// import router from '@/router'
 
 import { get_users } from '@/service/system/system'
 import { IUserResult } from '@/service/system/types'
