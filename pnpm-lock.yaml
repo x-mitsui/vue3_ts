@@ -21,6 +21,7 @@ specifiers:
   commitizen: ^4.2.5
   core-js: ^3.6.5
   cz-conventional-changelog: ^3.3.0
+  dayjs: ^1.11.5
   element-plus: ^2.2.16
   eslint: ^6.7.2
   eslint-plugin-prettier: ^3.3.1
@@ -41,6 +42,7 @@ dependencies:
   '@element-plus/icons-vue': registry.npmmirror.com/@element-plus/icons-vue/2.0.9_vue@3.2.39
   axios: registry.npmmirror.com/axios/0.27.2
   core-js: registry.npmmirror.com/core-js/3.25.1
+  dayjs: registry.npmmirror.com/dayjs/1.11.5
   element-plus: registry.npmmirror.com/element-plus/2.2.16_vue@3.2.39
   normalize.css: registry.npmmirror.com/normalize.css/8.0.1
   vue: registry.npmmirror.com/vue/3.2.39
