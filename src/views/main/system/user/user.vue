@@ -23,6 +23,12 @@
         <template #updateAt="slotProps">
           <span>{{ $filters.formatTime(slotProps.info) }}</span>
         </template>
+        <template #operate>
+          <div class="operate">
+            <el-button type="text" icon="Edit" size="small">操作</el-button>
+            <el-button type="text" icon="Delete" size="small">删除</el-button>
+          </div>
+        </template>
       </x-table>
     </div>
   </div>
@@ -34,6 +40,7 @@ import { useStore } from '@/store'
 import { formInfo } from './configs/formInfo'
 import { PageSearch } from '@/components/PageSearch'
 import { XTable } from '@/base-ui/table'
+import { Edit } from '@element-plus/icons-vue'
 export default defineComponent({
   name: 'user',
   setup() {
@@ -51,21 +58,27 @@ export default defineComponent({
     })
 
     const propsList = [
-      { label: '姓名', prop: 'name', minWidth: '100' },
-      { label: '真实姓名', prop: 'realname', minWidth: '100' },
+      { label: '姓名', prop: 'name', minWidth: '80' },
+      { label: '真实姓名', prop: 'realname', minWidth: '80' },
       { label: '手机号', prop: 'cellphone', minWidth: '100' },
-      { label: '状态', prop: 'enable', minWidth: '100', slotName: 'status' },
+      { label: '状态', prop: 'enable', minWidth: '70', slotName: 'status' },
       {
         label: '创建时间',
         prop: 'createAt',
-        minWidth: '100',
+        minWidth: '180',
         slotName: 'createAt'
       },
       {
         label: '更新时间',
         prop: 'updateAt',
-        minWidth: '100',
+        minWidth: '180',
         slotName: 'updateAt'
+      },
+      {
+        label: '操作',
+        prop: 'operate',
+        minWidth: '120',
+        slotName: 'operate'
       }
     ]
     return { formInfo, userListRef, userCountRef, propsList }
@@ -86,5 +99,12 @@ export default defineComponent({
 .footer {
   text-align: right;
   padding-right: 18px;
+}
+.operate {
+  display: flex;
+  justify-content: center;
+  .el-button {
+    padding: 0;
+  }
 }
 </style>

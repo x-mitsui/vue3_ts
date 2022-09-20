@@ -16,7 +16,7 @@
         type="index"
         label="序号"
         align="center"
-        width="80"
+        width="70"
       ></el-table-column>
       <template v-for="item of propsList" :key="item.prop">
         <el-table-column v-bind="item" align="center">
