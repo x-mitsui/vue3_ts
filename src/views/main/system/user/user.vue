@@ -6,6 +6,7 @@
         :usersList="userListRef"
         :propsList="propsList"
         :showIndexColumn="true"
+        :showSelectionColumn="true"
       >
         <template #status="slotProps">
           <el-button
