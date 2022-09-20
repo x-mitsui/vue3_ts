@@ -4,7 +4,6 @@ dayjs.extend(utc)
 const FORMAT_STRING = 'YYYY-MM-DD HH:mm:ss'
 
 const formatUTCString = (utcStr: string, formatStr: string = FORMAT_STRING) => {
-  console.log('utcStr:', utcStr)
   return dayjs.utc(utcStr).local().format(formatStr)
 }
 const formatTimeStamp = (
