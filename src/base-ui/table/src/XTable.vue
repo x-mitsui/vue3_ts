@@ -1,5 +1,13 @@
 <template>
   <div class="x-table">
+    <div class="header">
+      <slot name="header">
+        <h2 class="title">{{ tableTitle }}</h2>
+        <div class="control">
+          <slot name="control"></slot>
+        </div>
+      </slot>
+    </div>
     <el-table
       :data="usersList"
       border
@@ -28,6 +36,9 @@
         </el-table-column>
       </template>
     </el-table>
+    <div class="footer">
+      <slot name="footer"></slot>
+    </div>
   </div>
 </template>
 
@@ -39,7 +50,8 @@ defineProps({
   usersList: { type: Array as PropType<IUser[] | undefined>, required: true },
   propsList: { type: Array as PropType<any>, required: true },
   showIndexColumn: { type: Boolean, default: false },
-  showSelectionColumn: { type: Boolean, default: false }
+  showSelectionColumn: { type: Boolean, default: false },
+  tableTitle: { type: String, default: '' }
 })
 const emit = defineEmits(['emitSelectionMes'])
 const handleSelectionChange = (e: any) => {
@@ -51,5 +63,11 @@ const handleSelectionChange = (e: any) => {
 <style lang="less" scoped>
 .x-table {
   border-top: 20px solid #f5f5f5;
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 22px;
+  }
 }
 </style>

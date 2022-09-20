@@ -7,6 +7,7 @@
         :propsList="propsList"
         :showIndexColumn="true"
         :showSelectionColumn="true"
+        tableTitle="用户数据"
       >
         <template #status="slotProps">
           <el-button
@@ -28,6 +29,9 @@
             <el-button type="text" icon="Edit" size="small">操作</el-button>
             <el-button type="text" icon="Delete" size="small">删除</el-button>
           </div>
+        </template>
+        <template #control>
+          <el-button size="default" type="primary">插入数据</el-button>
         </template>
       </x-table>
     </div>
