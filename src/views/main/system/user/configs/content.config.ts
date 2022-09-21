@@ -1,5 +1,6 @@
-import { contentType } from '../types/content.type'
+import { contentType } from '../../types/content.type'
 export const contentConfig: contentType = {
+  storeActionKey: 'users',
   showIndexColumn: true,
   showSelectionColumn: true,
   tableTitle: '用户数据',

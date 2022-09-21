@@ -9,7 +9,7 @@
       </slot>
     </div>
     <el-table
-      :data="usersList"
+      :data="dataList"
       border
       style="width: 100%"
       @selection-change="handleSelectionChange"
@@ -60,7 +60,7 @@ import { IUser } from '@/service/system/types'
 import { defineProps, defineEmits, PropType } from 'vue'
 
 defineProps({
-  usersList: { type: Array as PropType<IUser[] | undefined>, required: true },
+  dataList: { type: Array as PropType<IUser[] | undefined>, required: true },
   propsList: { type: Array as PropType<any>, required: true },
   showIndexColumn: { type: Boolean, default: false },
   showSelectionColumn: { type: Boolean, default: false },

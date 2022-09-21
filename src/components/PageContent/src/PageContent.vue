@@ -1,6 +1,6 @@
 <template>
   <div class="page-content">
-    <x-table :usersList="usersList" :="contentConfig">
+    <x-table :dataList="dataList" :="contentConfig">
       <template #status="slotProps">
         <el-button
           :type="slotProps.info === 1 ? 'success' : 'danger'"
@@ -33,24 +33,31 @@
 import { defineProps, PropType, onMounted, computed } from 'vue'
 import { useStore } from '@/store'
 import { XTable } from '@/base-ui/table'
-import { contentType } from '@/views/main/system/user/types/content.type'
+import { contentType } from '@/views/main/system/types/content.type'
 
-defineProps({
+const props = defineProps({
   contentConfig: {
     type: Object as PropType<contentType>,
     required: true
   }
 })
 const store = useStore()
-const usersList = computed(() => store.state.system.usersList)
-const userCount = computed(() => store.state.system.usersCount)
+const dataList = computed(() =>
+  store.getters['system/getDataList'](props.contentConfig.storeActionKey)
+)
+const dataCount = computed(() =>
+  store.getters['system/getDataCount'](props.contentConfig.storeActionKey)
+)
 
 onMounted(() => {
-  store.dispatch('system/getUsersAction', {
-    offset: 0,
-    size: 10
-    // name: 'w',
-    // cellphone: 4
+  store.dispatch('system/getListAction', {
+    storeActionKey: props.contentConfig.storeActionKey,
+    queryInfo: {
+      offset: 0,
+      size: 10
+      // name: 'w',
+      // cellphone: 4
+    }
   })
 })
 </script>

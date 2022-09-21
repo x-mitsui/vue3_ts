@@ -7,7 +7,6 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-
 import { PageContent } from '@/components/PageContent'
 import { PageSearch } from '@/components/PageSearch'
 import { searchConfig } from './configs/search.config'

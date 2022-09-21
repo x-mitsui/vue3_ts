@@ -17,7 +17,16 @@ export interface IUser {
   updateAt: Date
 }
 
-export interface IUserResult {
-  list: IUser[]
+export interface IRole {
+  id: number
+  name: string
+  intro: string
+  createAt: string
+  updateAt: string
+  menuList: any[]
+}
+
+export interface IList {
+  list: (IUser | IRole)[]
   totalCount: number
 }
