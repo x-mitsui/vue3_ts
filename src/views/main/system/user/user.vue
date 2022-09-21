@@ -1,6 +1,6 @@
 <template>
   <div class="user">
-    <PageSearch :formInfo="searchConfig" />
+    <PageSearch :searchConfig="searchConfig" />
     <PageContent :contentConfig="contentConfig" />
   </div>
 </template>

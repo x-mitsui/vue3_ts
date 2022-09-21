@@ -42,7 +42,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, PropType, ref, watch, defineEmits } from 'vue'
+import { defineProps, PropType, ref, computed, watch, defineEmits } from 'vue'
 import { IFormItem } from '../types'
 const props = defineProps({
   FormData: {
@@ -77,10 +77,13 @@ const props = defineProps({
   }
 })
 const emit = defineEmits(['update:modelValue'])
+// 因为是解构，所以props.modelValue的再次改变不会影响这里
 const values = ref({ ...props.modelValue })
+
 watch(
   values,
   (newV) => {
+    console.log('wali:', 'wali')
     emit('update:modelValue', newV)
   },
   { deep: true }
