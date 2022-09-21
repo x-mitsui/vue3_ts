@@ -30,7 +30,7 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, PropType, onMounted, computed } from 'vue'
+import { defineProps, PropType, onMounted, computed, defineExpose } from 'vue'
 import { useStore } from '@/store'
 import { XTable } from '@/base-ui/table'
 import { contentType } from '@/views/main/system/types/content.type'
@@ -49,16 +49,20 @@ const dataCount = computed(() =>
   store.getters['system/getDataCount'](props.contentConfig.storeActionKey)
 )
 
-onMounted(() => {
+const getList = (queryInfo: any = {}) => {
   store.dispatch('system/getListAction', {
     storeActionKey: props.contentConfig.storeActionKey,
-    queryInfo: {
-      offset: 0,
-      size: 10
-      // name: 'w',
-      // cellphone: 4
-    }
+    queryInfo: { ...queryInfo, offset: 0, size: 10 }
   })
+}
+onMounted(() => {
+  getList()
+})
+const search = (queryInfo: any = {}) => {
+  getList(queryInfo)
+}
+defineExpose({
+  search
 })
 </script>
 

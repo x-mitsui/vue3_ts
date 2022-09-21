@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, defineProps } from 'vue'
+import { ref, defineProps, defineEmits } from 'vue'
 import { XForm } from '@/base-ui/form'
 
 const props = defineProps({
@@ -13,10 +13,16 @@ props.searchConfig.FormData.forEach((item: any) => {
   fieldsMap[item.field] = ''
 })
 const FormValues = ref(fieldsMap)
+
+const emit = defineEmits(['search', 'reset'])
 const reset = () => {
   Object.keys(fieldsMap).forEach((field) => {
     FormValues.value[field] = ''
   })
+  emit('reset')
+}
+const search = () => {
+  emit('search', FormValues.value)
 }
 </script>
 <template>
@@ -31,7 +37,9 @@ const reset = () => {
             <el-button icon="Refresh" type="primary" @click="reset"
               >重置</el-button
             >
-            <el-button icon="Search" type="primary">搜索</el-button>
+            <el-button icon="Search" type="primary" @click="search"
+              >搜索</el-button
+            >
           </div>
         </template>
       </XForm>

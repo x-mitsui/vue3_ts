@@ -9,7 +9,7 @@ export const searchConfig: IForm = {
       type: 'input'
     },
     {
-      field: 'username',
+      field: 'name',
       label: '用户名',
       placeholder: '请输入用户名',
       type: 'input'
@@ -27,7 +27,7 @@ export const searchConfig: IForm = {
       type: 'input'
     },
     {
-      field: 'status',
+      field: 'enable',
       label: '用户状态',
       placeholder: '请选择用户状态',
       type: 'select',

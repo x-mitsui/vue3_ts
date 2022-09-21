@@ -1,12 +1,12 @@
 <template>
   <div class="user">
-    <PageSearch :searchConfig="searchConfig" />
-    <PageContent :contentConfig="contentConfig" />
+    <PageSearch :searchConfig="searchConfig" @search="search" @reset="reset" />
+    <PageContent :contentConfig="contentConfig" ref="pc" />
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent } from 'vue'
+import { defineComponent, ref } from 'vue'
 import { PageContent } from '@/components/PageContent'
 import { PageSearch } from '@/components/PageSearch'
 import { searchConfig } from './configs/search.config'
@@ -14,7 +14,15 @@ import { contentConfig } from './configs/content.config'
 export default defineComponent({
   name: 'user',
   setup() {
-    return { searchConfig, contentConfig }
+    const pc = ref<InstanceType<typeof PageContent> | null>(null)
+
+    const search = (queryInfo: any) => {
+      pc.value?.search(queryInfo)
+    }
+    const reset = () => {
+      pc.value?.search()
+    }
+    return { searchConfig, contentConfig, pc, search, reset }
   },
   components: {
     PageSearch,
