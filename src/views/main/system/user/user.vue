@@ -6,22 +6,16 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref } from 'vue'
+import { defineComponent } from 'vue'
 import { PageContent } from '@/components/PageContent'
 import { PageSearch } from '@/components/PageSearch'
 import { searchConfig } from './configs/search.config'
 import { contentConfig } from './configs/content.config'
+import { pc, search, reset } from '@/hooks/usePageSearch'
 export default defineComponent({
   name: 'user',
   setup() {
-    const pc = ref<InstanceType<typeof PageContent> | null>(null)
-
-    const search = (queryInfo: any) => {
-      pc.value?.search(queryInfo)
-    }
-    const reset = () => {
-      pc.value?.search()
-    }
+    // const { pc, search, reset } = usePageSearch()
     return { searchConfig, contentConfig, pc, search, reset }
   },
   components: {
