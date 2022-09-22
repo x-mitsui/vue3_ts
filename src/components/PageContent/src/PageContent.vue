@@ -35,6 +35,13 @@
       <template #control>
         <el-button size="default" type="primary">插入数据</el-button>
       </template>
+      <template
+        v-for="item of otherPropsList"
+        :key="item.prop"
+        #[item.slotName]="slotProps"
+      >
+        <slot :name="item.slotName" :info="slotProps.info"> </slot>
+      </template>
     </x-table>
   </div>
 </template>
@@ -59,6 +66,18 @@ const props = defineProps({
     required: true
   }
 })
+const otherPropsList = computed(() =>
+  props.contentConfig.propsList.filter((item) => {
+    if (
+      ['status', 'createAt', 'updateAt', 'handler'].includes(item.slotName) ||
+      !item.slotName
+    ) {
+      return false
+    }
+    return true
+  })
+)
+
 const store = useStore()
 const dataList = computed(() =>
   store.getters['system/getDataList'](props.contentConfig.storeActionKey)

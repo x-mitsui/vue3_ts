@@ -27,7 +27,7 @@
         width="70"
       ></el-table-column>
       <template v-for="item of propsList" :key="item.prop">
-        <el-table-column v-bind="item" align="center">
+        <el-table-column v-bind="item" align="center" show-overflow-tooltip>
           <template v-slot="columnInfo">
             <slot :name="item.slotName" :info="columnInfo.row[item.prop]">
               {{ columnInfo.row[item.prop] }}
@@ -53,7 +53,7 @@
 </template>
 
 <script lang="ts" setup>
-import { IUser } from '@/service/system/types'
+import { IUser } from '@/service/types'
 import { defineProps, defineEmits, PropType } from 'vue'
 
 defineProps({
