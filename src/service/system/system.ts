@@ -1,8 +1,8 @@
 import { request } from '../index'
 import { IDataType } from '../types'
-import { IUserQuery, IList } from './types'
+import { IQuery, IList } from '../types'
 
-const get_list = (url: string, queryInfo: IUserQuery) => {
+const get_list = (url: string, queryInfo: IQuery) => {
   return request.post<IDataType<IList>>({
     url,
     data: queryInfo

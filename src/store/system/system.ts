@@ -3,7 +3,7 @@ import type { ISystemState } from './types'
 import type { Module } from 'vuex'
 
 import { get_list } from '@/service/system/system'
-import { IList, IRole, IUser } from '@/service/system/types'
+import { ICategory, IGood, IList, IRole, IUser } from '@/service/types'
 import { systemMap } from './sys-map-conf'
 
 export const system: Module<ISystemState, IRootState> = {
@@ -12,11 +12,14 @@ export const system: Module<ISystemState, IRootState> = {
     usersList: undefined,
     usersCount: 0,
     roleList: undefined,
-    roleCount: 0
+    roleCount: 0,
+    goodsList: undefined,
+    goodsCount: 0,
+    categoryList: undefined,
+    categoryCount: 0
   },
   getters: {
     getDataList(state) {
-      console.log('state.roleList:', state.roleList)
       return (key: string) => (state as any)[`${key}List`]
     },
     getDataCount(state) {
@@ -29,9 +32,16 @@ export const system: Module<ISystemState, IRootState> = {
       state.usersCount = payload.totalCount
     },
     setRoles(state, payload: IList) {
-      console.log('payload:', payload)
       state.roleList = payload.list as IRole[]
       state.roleCount = payload.totalCount
+    },
+    setGoods(state, payload: IList) {
+      state.goodsList = payload.list as IGood[]
+      state.goodsCount = payload.totalCount
+    },
+    setCategory(state, payload: IList) {
+      state.categoryList = payload.list as ICategory[]
+      state.categoryCount = payload.totalCount
     }
   },
   actions: {
