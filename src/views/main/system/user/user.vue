@@ -7,8 +7,7 @@
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-import { PageContent } from '@/components/PageContent'
-import { PageSearch } from '@/components/PageSearch'
+
 import { searchConfig } from './configs/search.config'
 import { contentConfig } from './configs/content.config'
 import { pc, search, reset } from '@/hooks/usePageSearch'
@@ -17,10 +16,6 @@ export default defineComponent({
   setup() {
     // const { pc, search, reset } = usePageSearch()
     return { searchConfig, contentConfig, pc, search, reset }
-  },
-  components: {
-    PageSearch,
-    PageContent
   }
 })
 </script>
