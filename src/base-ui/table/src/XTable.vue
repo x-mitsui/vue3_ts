@@ -39,16 +39,13 @@
     <div class="footer">
       <slot name="footer">
         <el-pagination
-          v-model:currentPage="currentPage4"
-          v-model:page-size="pageSize4"
-          :page-sizes="[100, 200, 300, 400]"
-          :small="small"
-          :disabled="disabled"
-          :background="background"
+          :currentPage="currentPage"
+          :page-size="pageSize"
+          @update:current-page="handleCurrentChange"
+          @update:page-size="handleSizeChange"
+          :page-sizes="[10, 20, 30]"
           layout="total, sizes, prev, pager, next, jumper"
-          :total="400"
-          @size-change="handleSizeChange"
-          @current-change="handleCurrentChange"
+          :total="dataCount"
         />
       </slot>
     </div>
@@ -64,12 +61,26 @@ defineProps({
   propsList: { type: Array as PropType<any>, required: true },
   showIndexColumn: { type: Boolean, default: false },
   showSelectionColumn: { type: Boolean, default: false },
-  tableTitle: { type: String, default: '' }
+  tableTitle: { type: String, default: '' },
+  currentPage: { type: Number, default: 1 },
+  pageSize: { type: Number as PropType<10 | 20 | 30>, default: 10 },
+  dataCount: { type: Number, default: 100 }
 })
-const emit = defineEmits(['emitSelectionMes'])
+const emit = defineEmits([
+  'emitSelectionMes',
+  'update:currentPage',
+  'update:pageSize'
+])
 const handleSelectionChange = (e: any) => {
   console.log(e)
   emit('emitSelectionMes', e)
+}
+
+const handleSizeChange = (newPageSize: number) => {
+  emit('update:pageSize', newPageSize)
+}
+const handleCurrentChange = (newCurrentPage: number) => {
+  emit('update:currentPage', newCurrentPage)
 }
 </script>
 

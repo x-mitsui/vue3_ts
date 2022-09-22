@@ -1,6 +1,12 @@
 <template>
   <div class="page-content">
-    <x-table :dataList="dataList" :="contentConfig">
+    <x-table
+      :dataList="dataList"
+      :="contentConfig"
+      v-model:currentPage="currentPage"
+      v-model:pageSize="pageSize"
+      :dataCount="dataCount"
+    >
       <template #status="slotProps">
         <el-button
           :type="slotProps.info === 1 ? 'success' : 'danger'"
@@ -18,8 +24,12 @@
       </template>
       <template #operate>
         <div class="operate">
-          <el-button type="text" icon="Edit" size="small">操作</el-button>
-          <el-button type="text" icon="Delete" size="small">删除</el-button>
+          <el-button link type="primary" icon="Edit" size="small"
+            >操作</el-button
+          >
+          <el-button link type="primary" icon="Delete" size="small"
+            >删除</el-button
+          >
         </div>
       </template>
       <template #control>
@@ -30,7 +40,15 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps, PropType, onMounted, computed, defineExpose } from 'vue'
+import {
+  defineProps,
+  PropType,
+  onMounted,
+  computed,
+  defineExpose,
+  ref,
+  watch
+} from 'vue'
 import { useStore } from '@/store'
 import { XTable } from '@/base-ui/table'
 import { contentType } from '@/views/main/system/types/content.type'
@@ -48,13 +66,25 @@ const dataList = computed(() =>
 const dataCount = computed(() =>
   store.getters['system/getDataCount'](props.contentConfig.storeActionKey)
 )
+const currentPage = ref(1)
+const pageSize = ref<10 | 20 | 30>(10)
 
 const getList = (queryInfo: any = {}) => {
   store.dispatch('system/getListAction', {
     storeActionKey: props.contentConfig.storeActionKey,
-    queryInfo: { ...queryInfo, offset: 0, size: 10 }
+    queryInfo: {
+      ...queryInfo,
+      offset: (currentPage.value - 1) * pageSize.value,
+      size: pageSize.value
+    }
   })
 }
+watch(currentPage, () => {
+  getList()
+})
+watch(pageSize, () => {
+  getList()
+})
 onMounted(() => {
   getList()
 })
