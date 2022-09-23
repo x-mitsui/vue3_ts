@@ -2,7 +2,7 @@ import type { IRootState } from '../types'
 import type { ISystemState } from './types'
 import type { Module } from 'vuex'
 
-import { get_list } from '@/service/system/system'
+import { get_list, delete_item } from '@/service/system/system'
 import { ICategory, IGood, IList, IMenu, IRole, IUser } from '@/service/types'
 import { systemMap } from './sys-map-conf'
 
@@ -60,6 +60,14 @@ export const system: Module<ISystemState, IRootState> = {
       )
 
       commit(systemMap[payload.storeActionKey].mutationName, result.data)
+    },
+    async deleteItemAction({ dispatch }, { storeActionKey, id }) {
+      await delete_item(`/${storeActionKey}/${id}`)
+      // 再次拉取列表新数据
+      dispatch('getListAction', {
+        storeActionKey,
+        queryInfo: { size: 10, offset: 0 }
+      })
     }
   }
 }

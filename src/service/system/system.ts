@@ -1,6 +1,6 @@
 import { request } from '../index'
 import { IDataType } from '../types'
-import { IQuery, IList } from '../types'
+import { IQuery, IList, IDeleteResult } from '../types'
 
 const get_list = (url: string, queryInfo: IQuery) => {
   return request.post<IDataType<IList>>({
@@ -8,4 +8,12 @@ const get_list = (url: string, queryInfo: IQuery) => {
     data: queryInfo
   })
 }
-export { get_list }
+
+const delete_item = (url: string) => {
+  console.log('url:', url)
+  return request.delete<IDataType<IDeleteResult>>({
+    url,
+    showLoading: true
+  })
+}
+export { get_list, delete_item }

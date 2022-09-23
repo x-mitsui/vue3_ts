@@ -24,15 +24,19 @@
         align="center"
         width="70"
       ></el-table-column>
-      <template v-for="item of propsList" :key="item.prop">
+      <template v-for="propConfig of propsList" :key="propConfig.prop">
         <el-table-column
-          v-bind="item"
+          v-bind="propConfig"
           align="center"
           :show-overflow-tooltip="showOverflowTooltip"
         >
           <template v-slot="columnInfo">
-            <slot :name="item.slotName" :info="columnInfo.row[item.prop]">
-              {{ columnInfo.row[item.prop] }}
+            <slot
+              :name="propConfig.slotName"
+              :row="columnInfo.row"
+              :propName="propConfig.prop"
+            >
+              {{ columnInfo.row[propConfig.prop] }}
             </slot>
           </template>
         </el-table-column>

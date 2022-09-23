@@ -9,18 +9,22 @@
     >
       <template #status="slotProps">
         <el-button
-          :type="slotProps.info === 1 ? 'success' : 'danger'"
+          :type="slotProps.row[slotProps.propName] === 1 ? 'success' : 'danger'"
           size="small"
           plain
         >
-          {{ slotProps.info === 1 ? '允许' : '禁止' }}
+          {{ slotProps.row[slotProps.propName] === 1 ? '允许' : '禁止' }}
         </el-button>
       </template>
       <template #createAt="slotProps">
-        <span>{{ $filters.formatTime(slotProps.info) }}</span>
+        <span>{{
+          $filters.formatTime(slotProps.row[slotProps.propName])
+        }}</span>
       </template>
       <template #updateAt="slotProps">
-        <span>{{ $filters.formatTime(slotProps.info) }}</span>
+        <span>{{
+          $filters.formatTime(slotProps.row[slotProps.propName])
+        }}</span>
       </template>
       <template #operate="slotProps">
         <div class="operate">
@@ -32,7 +36,7 @@
             type="primary"
             icon="Delete"
             size="small"
-            @click="deleteItem(slotProps)"
+            @click="deleteItem(slotProps.row['id'])"
             >删除</el-button
           >
         </div>
@@ -47,7 +51,8 @@
         :key="item.prop"
         #[item.slotName]="slotProps"
       >
-        <slot :name="item.slotName" :info="slotProps.info"> </slot>
+        <slot :name="item.slotName" :info="slotProps.row[slotProps.propName]">
+        </slot>
       </template>
     </x-table>
   </div>
@@ -109,6 +114,14 @@ const getList = (queryInfo: any = {}) => {
       offset: (currentPage.value - 1) * pageSize.value,
       size: pageSize.value
     }
+  })
+}
+// 删除数据
+const deleteItem = (id: any) => {
+  console.log('id:', id)
+  store.dispatch('system/deleteItemAction', {
+    storeActionKey: props.contentConfig.storeActionKey,
+    id
   })
 }
 

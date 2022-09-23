@@ -63,6 +63,10 @@ export interface IList {
   totalCount: number
 }
 
+export interface IDeleteResult {
+  code: number
+}
+
 export interface IDataType<T = any> {
   code: number
   data: T
