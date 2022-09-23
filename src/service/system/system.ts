@@ -10,7 +10,6 @@ const get_list = (url: string, queryInfo: IQuery) => {
 }
 
 const delete_item = (url: string) => {
-  console.log('url:', url)
   return request.delete<IDataType<IDeleteResult>>({
     url,
     showLoading: true
