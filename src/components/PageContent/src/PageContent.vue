@@ -33,7 +33,9 @@
         </div>
       </template>
       <template #control>
-        <el-button size="default" type="primary">插入数据</el-button>
+        <el-button size="default" type="primary" v-if="isCreate"
+          >插入数据</el-button
+        >
       </template>
       <template
         v-for="item of otherPropsList"
@@ -59,6 +61,7 @@ import {
 import { useStore } from '@/store'
 import { XTable } from '@/base-ui/table'
 import { contentType } from '@/views/main/system/types/content.type'
+import { usePermission } from '@/hooks/usePermission'
 
 const props = defineProps({
   contentConfig: {
@@ -77,6 +80,10 @@ const otherPropsList = computed(() =>
     return true
   })
 )
+const isCreate = usePermission(props.contentConfig.storeActionKey, 'create')
+const isDelete = usePermission(props.contentConfig.storeActionKey, 'delete')
+const isUpdate = usePermission(props.contentConfig.storeActionKey, 'update')
+const isQuery = usePermission(props.contentConfig.storeActionKey, 'query')
 
 const store = useStore()
 const dataList = computed(() =>

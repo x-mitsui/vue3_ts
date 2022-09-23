@@ -1,16 +1,16 @@
 <template>
   <div class="menu">
-    <h2>menu</h2>
+    <PageContent :contentConfig="contentConfig" />
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent } from 'vue'
-
+import { contentConfig } from './configs/content.config'
 export default defineComponent({
   name: 'meNu',
   setup() {
-    return {}
+    return { contentConfig }
   }
 })
 </script>

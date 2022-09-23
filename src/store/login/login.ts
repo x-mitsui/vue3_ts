@@ -10,13 +10,17 @@ import {
 import { LocalCache } from '@/utils/LocalCache'
 import router from '@/router'
 import { convertMenus2Routes } from '@/utils/convertMenus2Routes'
+import { convertMenus2Permissions } from '@/utils/convertMenus2Permissions'
 
 export const login: Module<ILoginState, IRootState> = {
   namespaced: true,
-  state: {
-    token: '',
-    userinfo: '',
-    userMenus: ''
+  state() {
+    return {
+      token: '',
+      userinfo: '',
+      userMenus: '',
+      permissions: []
+    }
   },
   getters: {},
   mutations: {
@@ -30,8 +34,8 @@ export const login: Module<ILoginState, IRootState> = {
       state.userMenus = payload
       // 动态注册路由
       const routes = convertMenus2Routes(state.userMenus)
+      state.permissions = convertMenus2Permissions(state.userMenus)
       routes.forEach((route) => router.addRoute('main', route))
-      // console.log('router:', router.getRoutes())
     }
   },
   actions: {

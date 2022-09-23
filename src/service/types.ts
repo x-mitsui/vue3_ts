@@ -33,6 +33,10 @@ export interface IGoodQuery {
   cellphone?: number
 }
 
+export interface IMenu {
+  list: any
+}
+
 export interface IGood {
   id: number
   name: string
@@ -55,7 +59,7 @@ export interface ICategory {
 }
 
 export interface IList {
-  list: (IUser | IRole | IGood | ICategory)[]
+  list: (IUser | IRole | IGood | ICategory | IMenu)[]
   totalCount: number
 }
 

@@ -12,12 +12,10 @@
       :data="dataList"
       border
       style="width: 100%"
+      :="treeTableConfig"
       @selection-change="handleSelectionChange"
     >
-      <el-table-column
-        type="selection"
-        :showSelectionColumn="showSelectionColumn"
-      >
+      <el-table-column type="selection" v-if="showSelectionColumn">
       </el-table-column>
       <el-table-column
         v-if="showIndexColumn"
@@ -27,7 +25,11 @@
         width="70"
       ></el-table-column>
       <template v-for="item of propsList" :key="item.prop">
-        <el-table-column v-bind="item" align="center" show-overflow-tooltip>
+        <el-table-column
+          v-bind="item"
+          align="center"
+          :show-overflow-tooltip="showOverflowTooltip"
+        >
           <template v-slot="columnInfo">
             <slot :name="item.slotName" :info="columnInfo.row[item.prop]">
               {{ columnInfo.row[item.prop] }}
@@ -36,7 +38,7 @@
         </el-table-column>
       </template>
     </el-table>
-    <div class="footer">
+    <div class="footer" v-if="isKeepFooter">
       <slot name="footer">
         <el-pagination
           :currentPage="currentPage"
@@ -64,7 +66,10 @@ defineProps({
   tableTitle: { type: String, default: '' },
   currentPage: { type: Number, default: 1 },
   pageSize: { type: Number as PropType<10 | 20 | 30>, default: 10 },
-  dataCount: { type: Number, default: 100 }
+  dataCount: { type: Number, default: 100 },
+  isKeepFooter: { type: Boolean, default: true },
+  treeTableConfig: { type: Object, default: () => ({}) },
+  showOverflowTooltip: { type: Boolean, default: true }
 })
 const emit = defineEmits([
   'emitSelectionMes',
@@ -72,7 +77,6 @@ const emit = defineEmits([
   'update:pageSize'
 ])
 const handleSelectionChange = (e: any) => {
-  console.log(e)
   emit('emitSelectionMes', e)
 }
 
