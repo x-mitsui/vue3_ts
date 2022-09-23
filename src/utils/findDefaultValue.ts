@@ -7,7 +7,6 @@ export const findDefaultValue = (menus: any, path: string): any => {
       if (defaultValue !== null) break
     } else if (menu.type === 2) {
       if (menu.url === path) {
-        console.log('menu.url:', menu.url)
         defaultValue = menu.id
         break
       }

@@ -57,7 +57,7 @@ import { IUser } from '@/service/types'
 import { defineProps, defineEmits, PropType } from 'vue'
 
 defineProps({
-  dataList: { type: Array as PropType<IUser[] | undefined>, required: true },
+  dataList: { type: Array as PropType<IUser[]>, required: true },
   propsList: { type: Array as PropType<any>, required: true },
   showIndexColumn: { type: Boolean, default: false },
   showSelectionColumn: { type: Boolean, default: false },

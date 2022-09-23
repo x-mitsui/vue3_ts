@@ -1,12 +1,14 @@
-import { IUser, IRole, IGood, ICategory } from '@/service/system/types'
+import { IUser, IRole, IGood, ICategory, IMenu } from '@/service/types'
 
 export interface ISystemState {
-  usersList: IUser[] | undefined
+  usersList: IUser[]
   usersCount: number
-  roleList: IRole[] | undefined
+  roleList: IRole[]
   roleCount: number
-  goodsList: IGood[] | undefined
+  goodsList: IGood[]
   goodsCount: number
-  categoryList: ICategory[] | undefined
+  categoryList: ICategory[]
   categoryCount: number
+  menuList: IMenu[]
+  menuCount: number
 }
