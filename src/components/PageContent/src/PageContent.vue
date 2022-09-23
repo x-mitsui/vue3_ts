@@ -22,12 +22,17 @@
       <template #updateAt="slotProps">
         <span>{{ $filters.formatTime(slotProps.info) }}</span>
       </template>
-      <template #operate>
+      <template #operate="slotProps">
         <div class="operate">
-          <el-button link type="primary" icon="Edit" size="small"
-            >操作</el-button
-          >
-          <el-button link type="primary" icon="Delete" size="small"
+          <el-button link type="primary" icon="Edit" size="small">
+            操作
+          </el-button>
+          <el-button
+            link
+            type="primary"
+            icon="Delete"
+            size="small"
+            @click="deleteItem(slotProps)"
             >删除</el-button
           >
         </div>
@@ -72,7 +77,7 @@ const props = defineProps({
 const otherPropsList = computed(() =>
   props.contentConfig.propsList.filter((item) => {
     if (
-      ['status', 'createAt', 'updateAt', 'handler'].includes(item.slotName) ||
+      ['status', 'createAt', 'updateAt', 'operate'].includes(item.slotName) ||
       !item.slotName
     ) {
       return false
@@ -95,6 +100,7 @@ const dataCount = computed(() =>
 const currentPage = ref(1)
 const pageSize = ref<10 | 20 | 30>(10)
 
+// 获取数据列表
 const getList = (queryInfo: any = {}) => {
   store.dispatch('system/getListAction', {
     storeActionKey: props.contentConfig.storeActionKey,
@@ -105,6 +111,7 @@ const getList = (queryInfo: any = {}) => {
     }
   })
 }
+
 watch(currentPage, () => {
   getList()
 })
