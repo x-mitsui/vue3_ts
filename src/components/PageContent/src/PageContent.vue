@@ -28,7 +28,13 @@
       </template>
       <template #operate="slotProps">
         <div class="operate">
-          <el-button link type="primary" icon="Edit" size="small">
+          <el-button
+            link
+            type="primary"
+            icon="Edit"
+            size="small"
+            @click="updateItem(slotProps)"
+          >
             操作
           </el-button>
           <el-button
@@ -42,7 +48,11 @@
         </div>
       </template>
       <template #control>
-        <el-button size="default" type="primary" v-if="isCreate"
+        <el-button
+          size="default"
+          type="primary"
+          v-if="isCreate"
+          @click="createItem"
           >插入数据</el-button
         >
       </template>
@@ -66,7 +76,8 @@ import {
   computed,
   defineExpose,
   ref,
-  watch
+  watch,
+  defineEmits
 } from 'vue'
 import { useStore } from '@/store'
 import { XTable } from '@/base-ui/table'
@@ -116,13 +127,25 @@ const getList = (queryInfo: any = {}) => {
     }
   })
 }
-// 删除数据
+
+const emit = defineEmits(['createItem', 'updateItem'])
+// 增加一条数据
+const createItem = () => {
+  console.log('增加一条数据')
+  emit('createItem')
+}
+// 删除一条数据
 const deleteItem = (id: any) => {
   console.log('id:', id)
   store.dispatch('system/deleteItemAction', {
     storeActionKey: props.contentConfig.storeActionKey,
     id
   })
+}
+// 更新一条数据
+const updateItem = (slotProps: any) => {
+  console.log('更新一条数据', slotProps)
+  emit('updateItem', slotProps, true)
 }
 
 watch(currentPage, () => {

@@ -4,7 +4,15 @@
     <el-form :model="FormData" :label-width="labelWidth" class="el-form-1">
       <el-row :gutter="10">
         <el-col v-bind="colSpans" v-for="item of FormData" :key="item.label">
-          <el-form-item :label="item.label" :style="itemStyle">
+          <el-form-item
+            :label="item.label"
+            :style="itemStyle"
+            v-if="
+              item.isShow === undefined /*未设置则默认为true*/
+                ? true
+                : item.isShow
+            "
+          >
             <template v-if="item.type === 'input' || item.type === 'password'">
               <el-input
                 :type="item.type"

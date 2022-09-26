@@ -19,6 +19,7 @@ export interface IFormItem {
   options?: any[]
   // 其它
   otherOptions?: any
+  isShow?: boolean
 }
 
 export interface IForm {

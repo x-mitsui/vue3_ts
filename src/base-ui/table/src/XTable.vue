@@ -30,7 +30,9 @@
           align="center"
           :show-overflow-tooltip="showOverflowTooltip"
         >
+          <!-- 使用了el-table-column的默认插槽 -->
           <template v-slot="columnInfo">
+            <!-- 生成新的具名插槽，如果slotName未定义，则插槽名为undefined -->
             <slot
               :name="propConfig.slotName"
               :row="columnInfo.row"
