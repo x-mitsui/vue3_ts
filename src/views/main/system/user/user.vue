@@ -18,26 +18,20 @@ import { contentConfig } from './configs/content.config'
 import { modalConfig } from './configs/modal.config'
 import { pc, search, reset } from '@/hooks/usePageSearch'
 import { usePageModal } from '@/hooks/usePageModal'
+import { recollectData } from '@/utils/recollectData'
 
 export default defineComponent({
   name: 'user',
   setup() {
+    const originalConfig = JSON.parse(JSON.stringify(modalConfig))
+
     const createCallback = () => {
-      const form_data = modalConfig.FormData.find(
-        (item) => item.field === 'password'
-      )
-      if (form_data) {
-        form_data.isShow = true
-      }
+      recollectData(originalConfig.FormData, modalConfig.FormData, 'create')
     }
     const updateCallback = () => {
-      const form_data = modalConfig.FormData.find(
-        (item) => item.field === 'password'
-      )
-      if (form_data) {
-        form_data.isShow = false
-      }
+      recollectData(originalConfig.FormData, modalConfig.FormData, 'update')
     }
+
     const { modalRef, createItem, updateItem } = usePageModal(
       createCallback,
       updateCallback

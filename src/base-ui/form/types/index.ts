@@ -19,7 +19,7 @@ export interface IFormItem {
   options?: any[]
   // 其它
   otherOptions?: any
-  isShow?: boolean
+  whitelist?: ('create' | 'update')[]
 }
 
 export interface IForm {
