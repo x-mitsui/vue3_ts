@@ -8,11 +8,11 @@ export const usePageModal = (
   const modalRef = ref<InstanceType<typeof PageModal>>()
 
   const createItem = () => {
-    modalRef.value?.OpenTheModal()
+    modalRef.value?.OpenTheModal({ title: '增加一条数据' })
     pageCreateCal && pageCreateCal()
   }
   const updateItem = (sthTobeChange: any) => {
-    modalRef.value?.OpenTheModal(sthTobeChange)
+    modalRef.value?.OpenTheModal({ sthTobeChange, title: '更新此条数据' })
     pageUpdateCal && pageUpdateCal()
   }
   return { modalRef, createItem, updateItem }

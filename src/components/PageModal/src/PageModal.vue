@@ -2,7 +2,7 @@
   <div class="page-modal">
     <el-dialog
       v-model="centerDialogVisible"
-      title="新建用户"
+      :title="title"
       width="30%"
       destroy-on-close
       center
@@ -31,9 +31,18 @@ defineProps({
     required: true
   }
 })
+const title = ref('')
 const formValues = ref({})
-const OpenTheModal = (sthTobeChange?: any) => {
+const OpenTheModal = ({
+  sthTobeChange,
+  title: modalTitle // 别名
+}: {
+  // 类型
+  sthTobeChange?: any
+  title: string
+}) => {
   centerDialogVisible.value = true
+  title.value = modalTitle
   if (sthTobeChange) {
     console.log('sthTobeChange:', sthTobeChange)
     // sthTobeChange.row.name = '6666666'
