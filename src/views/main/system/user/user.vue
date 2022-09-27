@@ -8,7 +8,7 @@
       @updateItem="updateItem"
     />
     <PageModal
-      :modalConfig="modalConfigRef"
+      :modalConfig="modalConfig_ref"
       :storeActionKey="contentConfig.storeActionKey"
       ref="modalRef"
     />
@@ -16,7 +16,7 @@
 </template>
 
 <script lang="ts">
-import { computed, defineComponent, ref } from 'vue'
+import { computed, defineComponent, ref, watch } from 'vue'
 import { searchConfig } from './configs/search.config'
 import { contentConfig } from './configs/content.config'
 import { modalConfig } from './configs/modal.config'
@@ -29,21 +29,20 @@ export default defineComponent({
   name: 'user',
   setup() {
     // modal的打开时的显示
-    const createCallback = () => {
-      const originalConfig = JSON.parse(JSON.stringify(modalConfigRef.value))
+    const modalConfig_ref = ref(modalConfig)
+    const originalConfig = JSON.parse(JSON.stringify(modalConfig))
 
+    const createCallback = () => {
       recollectData(
         originalConfig.FormData,
-        modalConfigRef.value.FormData,
+        modalConfig_ref.value.FormData,
         'create'
       )
     }
     const updateCallback = () => {
-      const originalConfig = JSON.parse(JSON.stringify(modalConfigRef.value))
-
       recollectData(
         originalConfig.FormData,
-        modalConfigRef.value.FormData,
+        modalConfig_ref.value.FormData,
         'update'
       )
     }
@@ -55,44 +54,51 @@ export default defineComponent({
 
     // 2.动态为select添加部门、角色选项
     const store = useStore()
-
-    const modalConfigRef = computed(() => {
-      console.log('1111111111111:', store.state.allDepartmentList)
-      const departmentConfig = modalConfig.FormData.find(
-        (item) => item.field === 'departmentId'
-      )
-      console.log('departmentConfig:', departmentConfig)
-      if (departmentConfig) {
-        if (departmentConfig.options) {
-          departmentConfig.options.length = 0
-          store.state.allDepartmentList.map((item) => {
-            if (departmentConfig.options) {
-              departmentConfig.options.push({
-                label: item.name,
-                value: item.id
-              })
-            }
-          })
+    watch(
+      store.state.allDepartmentList,
+      () => {
+        const departmentConfig = modalConfig.FormData.find(
+          (item) => item.field === 'departmentId'
+        )
+        console.log('departmentConfig:', departmentConfig)
+        if (departmentConfig) {
+          if (departmentConfig.options) {
+            departmentConfig.options.length = 0
+            store.state.allDepartmentList.map((item) => {
+              if (departmentConfig.options) {
+                departmentConfig.options.push({
+                  label: item.name,
+                  value: item.id
+                })
+              }
+            })
+          }
         }
-      }
-      const roleConfig = modalConfig.FormData.find(
-        (item) => item.field === 'roleId'
-      )
-      if (roleConfig) {
-        if (roleConfig.options) {
-          console.log('66666:', 66666)
-          roleConfig.options.length = 0
-          store.state.allRoleList.forEach((item) => {
-            if (roleConfig.options) {
-              roleConfig.options.push({ label: item.name, value: item.id })
-              console.log('roleConfig:', roleConfig)
-            }
-          })
+      },
+      { immediate: true }
+    )
+    console.log('store.state.allRoleList:', store.state.allRoleList)
+    watch(
+      store.state.allRoleList,
+      () => {
+        const roleConfig = modalConfig.FormData.find(
+          (item) => item.field === 'roleId'
+        )
+        if (roleConfig) {
+          if (roleConfig.options) {
+            console.log('66666:', 66666)
+            roleConfig.options.length = 0
+            store.state.allRoleList.forEach((item) => {
+              if (roleConfig.options) {
+                roleConfig.options.push({ label: item.name, value: item.id })
+                console.log('roleConfig:', roleConfig)
+              }
+            })
+          }
         }
-      }
-      console.log('&&', modalConfig)
-      return modalConfig
-    })
+      },
+      { immediate: true }
+    )
 
     return {
       searchConfig,
@@ -103,7 +109,8 @@ export default defineComponent({
       modalRef,
       createItem,
       updateItem,
-      modalConfigRef
+
+      modalConfig_ref
     }
   }
 })
