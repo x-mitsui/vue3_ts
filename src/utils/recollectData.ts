@@ -1,16 +1,24 @@
 export const recollectData = (
+  // 数据原始集合
   originDataList: any[],
+  // 待重新组织的数据集合
   newDataList: any[],
+  // 类型，用于判定是否在白名单中
   operateType: string
 ) => {
-  newDataList.length = 0 //清空数组，注意不能使用newDataList=[]，这种是切换了对象
-  originDataList.forEach((item: any) => {
+  originDataList.forEach((item: any, index: number) => {
     if (item.whitelist) {
       if (item.whitelist.includes(operateType)) {
-        newDataList.push(item)
+        if (!newDataList[index].whitelist) {
+          // 如果此集合没有白名单的对应项，将白名单对应项插入指定位置
+          newDataList.splice(index, 0, originDataList[index])
+        }
+      } else {
+        if (newDataList[index].whitelist) {
+          // 如果此集合有白名单的对应项，删除
+          newDataList.splice(index, 1)
+        }
       }
-    } else {
-      newDataList.push(item)
     }
   })
 }
