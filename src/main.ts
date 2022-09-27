@@ -21,6 +21,7 @@ app.use(ElementPlus, {
 restoreLocalStorage()
 app.use(router)
 app.use(globalRegister)
+store.dispatch('getListInfo')
 app.component('PageContent', PageContent)
 app.component('PageSearch', PageSearch)
 app.component('PageModal', PageModal)

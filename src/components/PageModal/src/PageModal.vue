@@ -11,9 +11,7 @@
       <template #footer>
         <span class="dialog-footer">
           <el-button @click="centerDialogVisible = false">取消</el-button>
-          <el-button type="primary" @click="centerDialogVisible = false"
-            >确定</el-button
-          >
+          <el-button type="primary" @click="sure">确定</el-button>
         </span>
       </template>
     </el-dialog>
@@ -23,16 +21,23 @@
 <script setup lang="ts">
 import { defineProps, ref, defineExpose } from 'vue'
 import { XForm } from '@/base-ui/form'
+import { useStore } from '@/store'
 
 const centerDialogVisible = ref(false)
-defineProps({
+const props = defineProps({
   modalConfig: {
     type: Object,
+    required: true
+  },
+  storeActionKey: {
+    type: String,
     required: true
   }
 })
 const title = ref('')
-const formValues = ref({})
+const formValues = ref<any>({})
+let modalType: 'update' | 'create' = 'update'
+let itemId = ''
 const OpenTheModal = ({
   sthTobeChange,
   title: modalTitle // 别名
@@ -44,11 +49,35 @@ const OpenTheModal = ({
   centerDialogVisible.value = true
   title.value = modalTitle
   if (sthTobeChange) {
-    console.log('sthTobeChange:', sthTobeChange)
+    console.log('sthTobeChange:', props.modalConfig)
     // sthTobeChange.row.name = '6666666'
-    formValues.value = { ...sthTobeChange.row } //解除响应作用
+    props.modalConfig.FormData.forEach((item: any) => {
+      formValues.value[item.field] = sthTobeChange.row[item.field]
+    })
+    itemId = sthTobeChange.row.id
+    // formValues.value = { ...sthTobeChange.row } //解除响应作用
+    modalType = 'update'
   } else {
     formValues.value = {}
+    modalType = 'create'
+  }
+}
+const store = useStore()
+const sure = () => {
+  centerDialogVisible.value = false
+  console.log('formValues.value:', formValues.value)
+  if (modalType === 'update') {
+    store.dispatch('system/updateItemInfoAction', {
+      storeActionKey: props.storeActionKey,
+      id: itemId,
+      value: formValues.value
+    })
+  } else {
+    console.log('props.storeActionKey:', props.storeActionKey)
+    store.dispatch('system/createNewItemAction', {
+      storeActionKey: props.storeActionKey,
+      value: formValues.value
+    })
   }
 }
 defineExpose({ OpenTheModal })

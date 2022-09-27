@@ -2,7 +2,8 @@ import { ILoginState } from './login/types'
 import { ISystemState } from './system/types'
 
 export interface IRootState {
-  counter: number // 主模块state类型
+  allDepartmentList: any[]
+  allRoleList: any[]
 }
 
 export interface IRootStateWithModule {

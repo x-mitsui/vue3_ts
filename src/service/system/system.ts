@@ -15,4 +15,21 @@ const delete_item = (url: string) => {
     showLoading: true
   })
 }
-export { get_list, delete_item }
+
+const updateItemInfo = (url: string, queryInfo: any) => {
+  return request.patch<IDataType<any>>({
+    url,
+    data: queryInfo,
+    showLoading: true
+  })
+}
+
+const createNewItem = (url: string, queryInfo: any) => {
+  return request.post<IDataType<any>>({
+    url,
+    data: queryInfo,
+    showLoading: true
+  })
+}
+
+export { get_list, delete_item, updateItemInfo, createNewItem }

@@ -2,7 +2,12 @@ import type { IRootState } from '../types'
 import type { ISystemState } from './types'
 import type { Module } from 'vuex'
 
-import { get_list, delete_item } from '@/service/system/system'
+import {
+  get_list,
+  delete_item,
+  createNewItem,
+  updateItemInfo
+} from '@/service/system/system'
 import { ICategory, IGood, IList, IMenu, IRole, IUser } from '@/service/types'
 import { systemMap } from './sys-map-conf'
 
@@ -65,6 +70,33 @@ export const system: Module<ISystemState, IRootState> = {
       await delete_item(`/${storeActionKey}/${id}`)
       // 再次拉取列表新数据
       dispatch('getListAction', {
+        storeActionKey,
+        queryInfo: { size: 10, offset: 0 }
+      })
+    },
+    async updateItemInfoAction(
+      { dispatch },
+      {
+        storeActionKey,
+        id,
+        value
+      }: { storeActionKey: string; id: number; value: any }
+    ) {
+      await updateItemInfo(`/${storeActionKey}/${id}`, value)
+
+      // 再请求所有数据
+      await dispatch('getListAction', {
+        storeActionKey,
+        queryInfo: { size: 10, offset: 0 }
+      })
+    },
+    async createNewItemAction(
+      { dispatch },
+      { storeActionKey, value }: { storeActionKey: string; value: any }
+    ) {
+      await createNewItem(`/${storeActionKey}`, value)
+      // 再请求所有数据
+      await dispatch('getListAction', {
         storeActionKey,
         queryInfo: { size: 10, offset: 0 }
       })
