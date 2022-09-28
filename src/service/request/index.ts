@@ -4,7 +4,7 @@ import type { XRequestInterceptors, XRequestConfig } from './types'
 
 import { ElLoading } from 'element-plus'
 import type { LoadingInstance } from 'element-plus/es/components/loading/src/loading'
-
+import 'element-plus/es/components/loading/style/css'
 const DEAFULT_LOADING = true
 
 export class XRequest {
