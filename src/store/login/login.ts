@@ -39,7 +39,7 @@ export const login: Module<ILoginState, IRootState> = {
     }
   },
   actions: {
-    async accountLoginAction({ commit }, payload: IAccount) {
+    async accountLoginAction({ commit, dispatch }, payload: IAccount) {
       // 登录获取token
       const result = await accountLoginAction(payload)
       console.log(result.code, result.data.token)
@@ -58,15 +58,20 @@ export const login: Module<ILoginState, IRootState> = {
       commit('setUserMenus', MenuResult.data)
       LocalCache.set('userMenus', MenuResult.data)
 
+      // 获取完整的role/department信息
+      dispatch('getListInfo', null, { root: true })
+
       router.push('/main')
     },
-    loadLocalStorage({ commit }) {
+    loadLocalStorage({ commit, dispatch }) {
       const token = LocalCache.get('token')
       const userinfo = LocalCache.get('userinfo')
       const userMenus = LocalCache.get('userMenus')
       token && commit('setToken', token)
       userinfo && commit('setUserinfo', userinfo)
       userMenus && commit('setUserMenus', userMenus)
+      // 获取完整的role/department信息
+      dispatch('getListInfo', null, { root: true })
     }
   }
 }

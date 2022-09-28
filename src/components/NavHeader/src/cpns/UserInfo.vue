@@ -42,7 +42,9 @@ const userinfo = store.state.login.userinfo
 const handleCommand = (command: string | number) => {
   if (command === 'exit') {
     LocalCache.clear()
-    router.replace('/login')
+    // 跳转目标为"/main"，会检查本地是否存在token；跳转目标login不会检查
+    // 好处：这样就不需要清空vuex了，虽然不安全，如果用户关闭网页就好了，vuex就不见了
+    router.replace('/main')
   } else if (command === 'userinfo') {
     //
   } else {
