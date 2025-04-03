@@ -1,6 +1,7 @@
 <template>
   <div class="main">
-    <el-container class="main-content">
+    <SingleUpdater />
+    <!-- <el-container class="main-content">
       <el-aside :width="isCollapse ? '60px' : '210px'">
         <nav-menu :collapse="isCollapse" />
       </el-aside>
@@ -14,14 +15,17 @@
           </div>
         </el-main>
       </el-container>
-    </el-container>
+    </el-container> -->
   </div>
 </template>
 
 <script lang="ts">
 import { defineComponent, ref } from 'vue'
-import { NavMenu } from 'components/NavMenu'
-import { NavHeader } from 'components/NavHeader'
+// import { NavMenu } from 'components/NavMenu'
+// import { NavHeader } from 'components/NavHeader'
+// import Multi from './multi/index.vue'
+import Single from './Single.vue'
+import SingleUpdater from './singleUpdater/index.vue'
 export default defineComponent({
   setup() {
     const isCollapse = ref(false)
@@ -32,8 +36,11 @@ export default defineComponent({
     return { isCollapse, changeMenuWidth }
   },
   components: {
-    NavMenu,
-    NavHeader
+    // NavMenu,
+    // NavHeader
+    // Multi,
+    SingleUpdater
+    // Updater
   }
 })
 </script>
@@ -53,6 +60,7 @@ export default defineComponent({
 
 .page-content {
   height: calc(100% - 48px);
+
   .page-content-bg {
     background-color: #fff;
   }
@@ -78,8 +86,10 @@ export default defineComponent({
   cursor: pointer;
   background-color: #001529;
   transition: width 0.3s linear;
-  scrollbar-width: none; /* firefox */
-  -ms-overflow-style: none; /* IE 10+ */
+  scrollbar-width: none;
+  /* firefox */
+  -ms-overflow-style: none;
+  /* IE 10+ */
 
   &::-webkit-scrollbar {
     display: none;
