@@ -1,6 +1,6 @@
 <template>
   <div class="main">
-    <SingleUpdater />
+    <SingleUpdaterUrlVer />
     <!-- <el-container class="main-content">
       <el-aside :width="isCollapse ? '60px' : '210px'">
         <nav-menu :collapse="isCollapse" />
@@ -24,8 +24,8 @@ import { defineComponent, ref } from 'vue'
 // import { NavMenu } from 'components/NavMenu'
 // import { NavHeader } from 'components/NavHeader'
 // import Multi from './multi/index.vue'
-import Single from './Single.vue'
-import SingleUpdater from './singleUpdater/index.vue'
+// import SingleUpdater from './singleUpdater/index.vue'
+import SingleUpdaterUrlVer from './singleUpdaterUrlVer/index.vue'
 export default defineComponent({
   setup() {
     const isCollapse = ref(false)
@@ -39,7 +39,8 @@ export default defineComponent({
     // NavMenu,
     // NavHeader
     // Multi,
-    SingleUpdater
+    // SingleUpdater,
+    SingleUpdaterUrlVer
     // Updater
   }
 })

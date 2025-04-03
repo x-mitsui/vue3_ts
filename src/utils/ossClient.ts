@@ -19,7 +19,7 @@ const sanitizePath = (path: string): string => {
 
 const getOSSToken = async () => {
   const res = await axios.get('http://localhost:3001/cms/file/sts')
-  const data = res.data
+  const data = res.data.data
   console.log(
     '距离过期还有：',
     new Date(data.expiration).getTime() - Date.now() - 1000 * 60,
@@ -64,8 +64,41 @@ export const getAliOssClient = async () => {
 export const uploadFile = async (file: File, path: string) => {
   const client = await getAliOssClient()
   const sanitizedPath = sanitizePath(path)
-  const fileName = generateFileName(file)
   return client.put(sanitizedPath, file)
+}
+
+export const uploadFileByPresignedUrl = async (
+  api: string,
+  ossRelativePath: string,
+  file: File
+) => {
+  const response = await fetch(api, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      objectKey: ossRelativePath,
+      fileType: file.type
+    })
+  })
+
+  if (!response.ok) throw new Error('获取上传链接失败')
+
+  const { presignedUrl } = (await response.json()).data
+  console.log('data:', presignedUrl, file.type, file.name)
+  const uploadResponse = await fetch(presignedUrl, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': file.type || 'application/octet-stream' // 设置文件类型
+    },
+    body: file // 直接传递File对象
+  })
+  if (uploadResponse.ok) {
+    console.log('上传成功！OSS路径:', ossRelativePath)
+    // 后续可通过拼接Bucket域名访问：https://your-bucket.oss-cn-beijing.aliyuncs.com/${objectKey}
+  } else {
+    console.error('上传失败', uploadResponse.status)
+  }
+  return uploadResponse
 }
 
 // 下载文件
