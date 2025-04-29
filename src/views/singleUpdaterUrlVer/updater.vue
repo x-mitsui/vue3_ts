@@ -126,16 +126,17 @@ const customRequest = async () => {
     // 获取文件扩展名
     const ext = file.value.name.split('.').pop()
     // 根据type生成文件名
-    const key = `resources/${props.id}/${props.type}.${ext}`
+    const key = `resources/${props.id}/`
 
     const result = await uploadFileByPresignedUrl(
-      'http://localhost:3001/cms/file/getPresignedUrl',
+      'http://192.168.9.47:3001/cms/file/getPresignedUrl',
       key,
-      file.value
+      new Buffer('') //file.value
     )
     console.log('result：', result)
     // 设置预览用的完整URL
     fileUrl.value = result.url.split('?')[0]
+    console.log('fileUrl：', fileUrl.value)
     // 向父组件传递相对路径
     emit('update:modelValue', key)
     ElMessage.success('上传成功')

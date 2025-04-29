@@ -76,7 +76,7 @@ export const uploadFileByPresignedUrl = async (
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      objectKey: ossRelativePath,
+      objectKey: ossRelativePath, // 这个填你的文件的相对桶的路径，如"source_ark_web_assets/dynamic_assets/commodity/10001/img.png"
       fileType: file.type
     })
   })
