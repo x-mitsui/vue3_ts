@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>OSS一次性批量删除文件夹和文件</title>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 150px;
+      margin: 10px 0;
+      padding: 8px;
+    }
+
+    button {
+      padding: 10px 15px;
+      background: #f44336;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    #status {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+
+    .success {
+      background: #e8f5e9;
+      color: #388e3c;
+    }
+
+    .error {
+      background: #ffebee;
+      color: #d32f2f;
+    }
+
+    .warning {
+      background: #fff8e1;
+      color: #ffa000;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>OSS智能删除工具</h1>
+
+  <textarea id="pathsToDelete" placeholder="输入要删除的路径，每行一个（文件夹请以/结尾）：
+source_ark_web_assets/test/test1/
+source_ark_web_assets/test/test2/
+source_ark_web_assets/test/test3.png
+source_ark_web_assets/test/test4.png"></textarea>
+
+  <button onclick="smartDelete()">智能删除</button>
+  <div id="status">准备就绪</div>
+
+  <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
+  <script>
+    // 初始化OSS客户端
+    let ossClient = null;
+    // 获取STS Token
+    const getOSSToken = async () => {
+      const res = await fetch('http://192.168.9.47:3001/cms/file/sts');
+      const data = await res.json();
+      console.log(data);
+
+      // 检查Token有效期
+      const expiresIn = new Date(data.data.expiration).getTime() - Date.now();
+      console.log(`Token剩余有效期: ${expiresIn / 1000}秒`);
+
+      if (expiresIn <= 0) {
+        throw new Error('STS Token已过期');
+      }
+      return data.data;
+    };
+    const getAliOssClient = async () => {
+      if (ossClient) return ossClient;
+      const data = await getOSSToken();
+      ossClient = new OSS({
+        region: data.region,
+        bucket: data.bucket,
+        accessKeyId: data.accessKeyId,
+        accessKeySecret: data.accessKeySecret,
+        stsToken: data.securityToken,
+        authorizationV4: true,
+        timeout: 60000,
+        refreshSTSToken: async () => {
+          const info = await getOSSToken();
+          return {
+            accessKeyId: info.accessKeyId,
+            accessKeySecret: info.accessKeySecret,
+            stsToken: info.securityToken
+          };
+        },
+        refreshSTSTokenInterval: 300000, // 5分钟刷新
+        secure: true
+      });
+      return ossClient;
+    };
+
+    // 核心智能删除方法
+    const smartDelete = async () => {
+      const status = document.getElementById('status');
+      try {
+        const client = await getAliOssClient();
+        const input = document.getElementById('pathsToDelete').value.trim();
+        const paths = input.split('\n').filter(p => p.trim());
+
+        // 打印调试信息
+        console.log('待删除路径:', paths); // [!code ++]
+
+        const { files, folders } = classifyPaths(paths);
+
+        // 1. 处理文件夹
+        for (const folder of folders) {
+          console.log(`处理文件夹: ${folder}`); // [!code ++]
+          const filesInFolder = await listAllFiles(client, folder);
+          if (filesInFolder.length > 0) {
+            await deleteFiles(client, filesInFolder);
+            console.log(`已删除 ${filesInFolder.length} 个文件`); // [!code ++]
+          }
+        }
+
+        // 2. 处理单独文件
+        if (files.length > 0) {
+          console.log('待删除文件:', files); // [!code ++]
+          await deleteFiles(client, files);
+        }
+
+        status.textContent = `删除完成（${folders.length}个文件夹 + ${files.length}个文件）`;
+        status.className = "success";
+
+      } catch (error) {
+        console.error('删除失败:', error); // [!code ++]
+        status.textContent = `删除失败: ${error.message}`;
+        status.className = "error";
+      }
+    };
+
+    // 列出文件夹下所有文件（带调试日志）
+    const listAllFiles = async (client, prefix) => {
+      let allFiles = [];
+      let nextMarker = '';
+      do {
+        const result = await client.list({ prefix, marker: nextMarker });
+        console.log(`[DEBUG] 找到 ${result.objects?.length || 0} 个文件`); // [!code ++]
+        allFiles = allFiles.concat(result.objects || []);
+        nextMarker = result.nextMarker;
+      } while (nextMarker);
+      return allFiles.map(f => f.name);
+    };
+
+    // 路径分类（区分文件和文件夹）
+    const classifyPaths = (paths) => {
+      const result = { files: [], folders: [] };
+
+      paths.forEach(path => {
+        path = path.trim();
+        if (!path) return;
+
+        if (path.endsWith('/')) {
+          result.folders.push(path);
+        } else {
+          result.files.push(path);
+        }
+      });
+
+      return result;
+    };
+
+    // 删除文件夹内容（递归）
+    const deleteFolderContents = async (client, folderPath) => {
+      let allFiles = [];
+      let nextMarker = '';
+
+      // 列出所有文件
+      do {
+        const result = await client.list({
+          prefix: folderPath,
+          marker: nextMarker,
+          'max-keys': 1000
+        });
+        allFiles = allFiles.concat(result.objects);
+        nextMarker = result.nextMarker;
+      } while (nextMarker);
+
+      // 批量删除
+      if (allFiles.length > 0) {
+        await deleteFiles(client, allFiles.map(f => f.name));
+      }
+    };
+
+    // 批量删除文件（自动分批次）
+    const deleteFiles = async (client, filePaths) => {
+      // OSS每次最多删除1000个文件
+      for (let i = 0; i < filePaths.length; i += 1000) {
+        const batch = filePaths.slice(i, i + 1000);
+        await client.deleteMulti(batch);
+      }
+    };
+
+    // 更新状态显示
+    const updateStatus = (message, type = "") => {
+      const status = document.getElementById('status');
+      status.textContent = message;
+      status.className = type;
+    };
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>OSS文件与文件夹移动工具</title>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    textarea,
+    input {
+      width: 100%;
+      padding: 8px;
+      box-sizing: border-box;
+    }
+
+    button {
+      padding: 10px 15px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    #status {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+
+    .success {
+      background: #e8f5e9;
+      color: #388e3c;
+    }
+
+    .error {
+      background: #ffebee;
+      color: #d32f2f;
+    }
+
+    .file-type {
+      color: #2196F3;
+    }
+
+    .folder-type {
+      color: #FF9800;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>OSS文件与文件夹移动工具</h1>
+
+  <div class="input-group">
+    <h3>源路径（每行一个）</h3>
+    <textarea id="sourcePaths" rows="5" placeholder="输入要移动的路径：
+test/src_folder/  ← 文件夹请以/结尾
+test/src_file.txt ← 文件直接写路径"></textarea>
+  </div>
+
+  <div class="input-group">
+    <h3>目标位置</h3>
+    <input type="text" id="targetBase" placeholder="目标基础路径（如：test/dst/）">
+    <p><small>文件夹移动时会保持原始目录结构</small></p>
+  </div>
+
+  <button onclick="moveItems()">执行移动</button>
+  <div id="status">准备就绪</div>
+
+  <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
+  <script>
+    // 初始化OSS客户端
+    const getClient = async () => {
+      const res = await fetch('http://192.168.9.47:3001/cms/file/sts');
+      const { data } = await res.json();
+      return new OSS({
+        region: 'oss-cn-beijing',
+        bucket: 'test-dzq01',
+        accessKeyId: data.accessKeyId,
+        accessKeySecret: data.accessKeySecret,
+        stsToken: data.securityToken,
+        secure: true
+      });
+    };
+
+    // 核心移动方法
+    const moveItems = async () => {
+      const status = document.getElementById('status');
+      status.textContent = "正在准备移动...";
+      status.className = "";
+
+      try {
+        const client = await getClient();
+        const sourceInput = document.getElementById('sourcePaths').value.trim();
+        const targetBase = document.getElementById('targetBase').value.trim();
+
+        if (!sourceInput || !targetBase) {
+          throw new Error("源路径和目标基础路径不能为空");
+        }
+
+        // 标准化目标路径
+        const normalizedTarget = targetBase.endsWith('/') ? targetBase : targetBase + '/';
+        const sources = sourceInput.split('\n').filter(p => p.trim());
+
+        // 统计结果
+        let movedFiles = 0;
+        let movedFolders = 0;
+
+        for (const source of sources) {
+          if (source.endsWith('/')) {
+            // 文件夹移动（保持结构）
+            movedFolders++;
+            await moveEntireFolder(client, source, normalizedTarget);
+          } else {
+            // 文件移动
+            movedFiles++;
+            const fileName = source.split('/').pop();
+            await moveFile(client, source, normalizedTarget + fileName);
+          }
+        }
+
+        status.textContent = `移动完成！共移动 ${movedFolders} 个文件夹和 ${movedFiles} 个文件`;
+        status.className = "success";
+
+      } catch (error) {
+        status.textContent = `移动失败: ${error.message}`;
+        status.className = "error";
+        console.error(error);
+      }
+    };
+
+    // 移动整个文件夹（保持结构）
+    const moveEntireFolder = async (client, srcFolder, targetBase) => {
+      // 获取文件夹名称（最后一级目录名）
+      const folderName = srcFolder.split('/').filter(Boolean).pop() + '/';
+      const targetFolder = targetBase + folderName;
+
+      // 1. 获取源文件夹所有内容
+      const allFiles = await listAllFiles(client, srcFolder);
+      if (allFiles.length === 0) {
+        console.warn(`空文件夹跳过: ${srcFolder}`);
+        return;
+      }
+
+      // 2. 移动所有文件（保持相对路径）
+      for (const file of allFiles) {
+        const relativePath = file.substring(srcFolder.length);
+        const newPath = targetFolder + relativePath;
+        await moveFile(client, file, newPath);
+      }
+
+      // 3. 删除原空文件夹标记
+      try {
+        await client.delete(srcFolder);
+      } catch (e) {
+        console.log(`无文件夹标记可删除: ${srcFolder}`);
+      }
+    };
+
+    // 移动单个文件（原子操作：复制+删除）
+    const moveFile = async (client, srcPath, targetPath) => {
+      console.log(`移动 ${srcPath} -> ${targetPath}`);
+      await client.copy(targetPath, srcPath);
+      await client.delete(srcPath);
+    };
+
+    // 列出文件夹下所有文件（包括子目录）
+    const listAllFiles = async (client, prefix) => {
+      let allFiles = [];
+      let nextMarker = '';
+      do {
+        const result = await client.list({
+          prefix,
+          marker: nextMarker,
+          'max-keys': 1000
+        });
+        // 过滤掉纯文件夹标记
+        const realFiles = (result.objects || []).filter(f => !f.name.endsWith('/') || f.size > 0);
+        allFiles = allFiles.concat(realFiles);
+        nextMarker = result.nextMarker;
+      } while (nextMarker);
+      return allFiles.map(f => f.name);
+    };
+  </script>
+</body>
+
+</html>

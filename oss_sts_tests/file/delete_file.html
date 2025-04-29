@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>OSS文件删除示例</title>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #cccccc;
+    }
+
+    #status {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+
+    .error {
+      background: #ffebee;
+      color: #d32f2f;
+    }
+
+    .success {
+      background: #e8f5e9;
+      color: #388e3c;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>OSS文件删除演示</h2>
+  <div>
+    <input type="text" id="filePath"
+      placeholder="输入要删除的oss 相对bucket的文件路径（如：source_ark_web_assets/dynamic_assets/commodity/20144/img.png"
+      style="width: 300px; padding: 8px;">
+    <button onclick="deleteFile()">删除文件</button>
+  </div>
+  <div id="status">准备就绪</div>
+
+  <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
+  <script>
+    let ossClient = null;
+
+    // 获取STS Token
+    const getOSSToken = async () => {
+      const res = await fetch('http://192.168.9.47:3001/cms/file/sts');
+      const data = await res.json();
+      console.log(data);
+
+      // 检查Token有效期
+      const expiresIn = new Date(data.data.expiration).getTime() - Date.now();
+      console.log(`Token剩余有效期: ${expiresIn / 1000}秒`);
+
+      if (expiresIn <= 0) {
+        throw new Error('STS Token已过期');
+      }
+      return data.data;
+    };
+
+    // 初始化OSS客户端
+    const getAliOssClient = async () => {
+      if (ossClient) return ossClient;
+      const data = await getOSSToken();
+      ossClient = new OSS({
+        region: data.region,
+        bucket: data.bucket,
+        accessKeyId: data.accessKeyId,
+        accessKeySecret: data.accessKeySecret,
+        stsToken: data.securityToken,
+        authorizationV4: true,
+        timeout: 60000,
+        refreshSTSToken: async () => {
+          const info = await getOSSToken();
+          return {
+            accessKeyId: info.accessKeyId,
+            accessKeySecret: info.accessKeySecret,
+            stsToken: info.securityToken
+          };
+        },
+        refreshSTSTokenInterval: 300000, // 5分钟刷新
+        secure: true
+      });
+      return ossClient;
+    };
+
+    // 删除文件核心逻辑
+    const deleteFile = async () => {
+      const filePath = document.getElementById('filePath').value.trim();
+      if (!filePath) {
+        updateStatus('请输入文件路径', 'error');
+        return;
+      }
+
+      try {
+        updateStatus('正在删除文件...');
+
+        const client = await getAliOssClient();
+
+        // 先检查文件是否存在（防止误删）
+        try {
+          await client.getObjectMeta(filePath);
+        } catch (error) {
+          if (error.code === 'NoSuchKey') {
+            updateStatus(`文件不存在: ${filePath}`, 'error');
+            return;
+          }
+          throw error;
+        }
+
+        // 执行删除
+        const result = await client.delete(filePath);
+        console.log('删除结果:', result);
+        updateStatus(`文件删除成功: ${filePath}`, 'success');
+
+      } catch (error) {
+        console.error('删除文件失败:', error);
+
+        let errorMessage = error.message;
+        if (error.code === 'AccessDenied') {
+          errorMessage = '无权限删除此文件（检查STS Policy配置）';
+        } else if (error.code === 'RequestTimeTooSkewed') {
+          errorMessage = '系统时间偏差过大，请校准时间';
+        }
+
+        updateStatus(`删除失败: ${errorMessage}`, 'error');
+      }
+    };
+
+    // 更新状态显示
+    const updateStatus = (message, type = '') => {
+      const statusDiv = document.getElementById('status');
+      statusDiv.textContent = message;
+      statusDiv.className = type;
+    };
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>OSS断点续传下载</title>
+</head>
+
+<body>
+  <button onclick="startDownload()">开始下载</button>
+  <button onclick="pauseDownload()" disabled id="pauseBtn">暂停</button>
+  <button onclick="resumeDownload()" disabled id="resumeBtn">继续</button>
+  <button onclick="cancelDownload()" disabled id="cancelBtn">取消</button>
+  <div id="progressText">准备下载...</div>
+
+  <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
+  <script>
+    // 全局状态控制
+    let isDownloading = false;
+    let isPaused = false;
+    let isCancelled = false;
+    let currentDownload = {
+      fileKey: '',
+      downloadedBytes: 0,
+      fileSize: 0,
+      blobParts: []
+    };
+    let activeRequests = new Set(); // 跟踪活跃请求
+
+    // 获取STS Token
+    const getOSSToken = async () => {
+      const res = await fetch('http://192.168.9.47:3001/cms/file/sts');
+      const data = await res.json();
+
+      // 检查Token有效期
+      const expiresIn = new Date(data.data.expiration).getTime() - Date.now();
+      console.log(`Token剩余有效期: ${expiresIn / 1000}秒`);
+
+      if (expiresIn <= 0) {
+        throw new Error('STS Token已过期');
+      }
+      return data.data;
+    };
+
+    // 初始化OSS客户端
+    let ossClient = null;
+    const getAliOssClient = async () => {
+      if (ossClient) return ossClient;
+      const data = await getOSSToken();
+      ossClient = new OSS({
+        region: data.region,
+        bucket: data.bucket,
+        accessKeyId: data.accessKeyId,
+        accessKeySecret: data.accessKeySecret,
+        stsToken: data.securityToken,
+        authorizationV4: true,
+        refreshSTSToken: async () => {
+          const info = await getOSSToken();
+          return {
+            accessKeyId: info.accessKeyId,
+            accessKeySecret: info.accessKeySecret,
+            stsToken: info.securityToken
+          };
+        },
+        refreshSTSTokenInterval: 300000, // 5分钟刷新
+        secure: true
+      });
+      return ossClient;
+    };
+
+    // 更新UI进度
+    function updateProgress() {
+      const progress = currentDownload.fileSize > 0
+        ? ((currentDownload.downloadedBytes / currentDownload.fileSize) * 100).toFixed(2)
+        : 0;
+      document.getElementById('progressText').textContent =
+        `进度: ${progress}% (${currentDownload.downloadedBytes}/${currentDownload.fileSize} bytes)`;
+    }
+
+    // 开始下载
+    async function startDownload() {
+      if (isDownloading) return;
+
+      resetState();
+      currentDownload.fileKey = 'source_ark_web_assets/dynamic_assets/commodity/20144/video.mp4';
+
+      document.getElementById('pauseBtn').disabled = false;
+      document.getElementById('cancelBtn').disabled = false;
+      updateProgress();
+
+      await downloadWithResume();
+    }
+
+    // 暂停下载
+    function pauseDownload() {
+      if (!isDownloading) return;
+      isPaused = true;
+      document.getElementById('pauseBtn').disabled = true;
+      document.getElementById('resumeBtn').disabled = false;
+      console.log('下载已暂停');
+    }
+
+    // 继续下载
+    function resumeDownload() {
+      if (isDownloading || !isPaused) return;
+      isPaused = false;
+      document.getElementById('pauseBtn').disabled = false;
+      document.getElementById('resumeBtn').disabled = true;
+      console.log('继续下载...');
+      downloadWithResume();
+    }
+
+    // 取消下载
+    function cancelDownload() {
+      if (!isDownloading && !isPaused) return;
+
+      isCancelled = true;
+      activeRequests.clear(); // 标记所有请求为失效
+
+      // 立即更新UI
+      document.getElementById('progressText').textContent = '下载已取消';
+      document.getElementById('pauseBtn').disabled = true;
+      document.getElementById('resumeBtn').disabled = true;
+      document.getElementById('cancelBtn').disabled = true;
+
+      // 清理存储
+      localStorage.removeItem(currentDownload.fileKey);
+      console.log('下载已完全取消');
+      resetState();
+    }
+
+    // 核心下载逻辑
+    async function downloadWithResume() {
+      try {
+        isDownloading = true;
+        const client = await getAliOssClient();
+
+        // 首次下载获取元数据
+        if (currentDownload.fileSize === 0) {
+          const meta = await client.getObjectMeta(currentDownload.fileKey);
+          currentDownload.fileSize = parseInt(meta.res.headers['content-length']);
+          console.log(`文件大小: ${currentDownload.fileSize} bytes`);
+
+          // 恢复进度
+          const savedProgress = localStorage.getItem(currentDownload.fileKey);
+          if (savedProgress) {
+            const progress = JSON.parse(savedProgress);
+            currentDownload.downloadedBytes = progress.downloadedBytes;
+            console.log(`恢复进度: ${currentDownload.downloadedBytes}/${currentDownload.fileSize}`);
+          }
+        }
+
+        // const chunkSize = 5 * 1024 * 1024; // 5MB分片
+        const chunkSize = 5 * 1024; // 5K分片
+
+        while (currentDownload.downloadedBytes < currentDownload.fileSize && !isPaused && !isCancelled) {
+          const requestId = `req-${Date.now()}`;
+          activeRequests.add(requestId);
+
+          try {
+            const end = Math.min(currentDownload.downloadedBytes + chunkSize - 1, currentDownload.fileSize - 1);
+            const range = `bytes=${currentDownload.downloadedBytes}-${end}`;
+
+            console.log(`下载范围: ${range}`);
+            const result = await client.get(currentDownload.fileKey, null, { headers: { Range: range } });
+
+            // 检查是否已被取消
+            if (isCancelled || !activeRequests.has(requestId)) {
+              console.log('分片下载已被取消');
+              return;
+            }
+
+            currentDownload.blobParts.push(result.content);
+            currentDownload.downloadedBytes = end + 1;
+
+            // 保存进度
+            localStorage.setItem(currentDownload.fileKey, JSON.stringify({
+              downloadedBytes: currentDownload.downloadedBytes,
+              fileSize: currentDownload.fileSize
+            }));
+
+            updateProgress();
+          } finally {
+            activeRequests.delete(requestId);
+          }
+        }
+
+        // 完成处理
+        if (currentDownload.downloadedBytes >= currentDownload.fileSize && !isCancelled) {
+          completeDownload();
+        } else if (isPaused && !isCancelled) {
+          isDownloading = false;
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          console.error('下载出错:', err);
+          document.getElementById('progressText').textContent = '下载出错: ' + err.message;
+        }
+        isDownloading = false;
+      }
+    }
+
+    // 完成下载
+    function completeDownload() {
+      const fullBlob = new Blob(currentDownload.blobParts);
+      const url = URL.createObjectURL(fullBlob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = currentDownload.fileKey.split('/').pop();
+      a.click();
+      URL.revokeObjectURL(url);
+
+      console.log('下载完成！');
+      localStorage.removeItem(currentDownload.fileKey);
+      document.getElementById('progressText').textContent = '下载完成！';
+      resetState();
+    }
+
+    // 重置状态
+    function resetState() {
+      isDownloading = false;
+      isPaused = false;
+      isCancelled = false;
+      currentDownload = {
+        fileKey: '',
+        downloadedBytes: 0,
+        fileSize: 0,
+        blobParts: []
+      };
+      activeRequests.clear();
+
+      document.getElementById('pauseBtn').disabled = true;
+      document.getElementById('resumeBtn').disabled = true;
+      document.getElementById('cancelBtn').disabled = true;
+    }
+  </script>
+</body>
+
+</html>

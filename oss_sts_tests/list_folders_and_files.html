@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OSS文件浏览器</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    h1 {
+      color: #333;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+    }
+
+    .breadcrumb {
+      margin: 15px 0;
+      font-size: 14px;
+    }
+
+    .breadcrumb a {
+      color: #06c;
+      text-decoration: none;
+    }
+
+    .file-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .file-item {
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      align-items: center;
+    }
+
+    .file-item:hover {
+      background-color: #f9f9f9;
+    }
+
+    .file-icon {
+      margin-right: 10px;
+      width: 24px;
+      text-align: center;
+    }
+
+    .folder-icon {
+      color: #ffb700;
+    }
+
+    .file-name {
+      flex: 1;
+    }
+
+    .file-size {
+      color: #666;
+      font-size: 13px;
+      min-width: 80px;
+      text-align: right;
+    }
+
+    .file-actions a {
+      margin-left: 10px;
+      color: #06c;
+      text-decoration: none;
+      font-size: 13px;
+    }
+
+    .loading {
+      text-align: center;
+      padding: 20px;
+      color: #666;
+    }
+
+    .error {
+      color: #d32f2f;
+      padding: 10px;
+      background: #ffebee;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>OSS文件浏览器</h1>
+    <div class="breadcrumb" id="breadcrumb">
+      <a href="javascript:void(0)" onclick="listFiles('')">根目录</a>
+    </div>
+
+    <div id="file-list-container">
+      <div class="loading">加载中...</div>
+    </div>
+  </div>
+
+  <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
+  <script>
+    // 全局变量
+    let ossClient = null;
+    let currentPath = '';
+
+    // 获取STS Token
+    const getOSSToken = async () => {
+      const res = await fetch('http://192.168.9.47:3001/cms/file/sts');
+      const data = await res.json();
+      console.log(data);
+
+      // 检查Token有效期
+      const expiresIn = new Date(data.data.expiration).getTime() - Date.now();
+      console.log(`Token剩余有效期: ${expiresIn / 1000}秒`);
+
+      if (expiresIn <= 0) {
+        throw new Error('STS Token已过期');
+      }
+      return data.data;
+    };
+
+    // 初始化OSS客户端
+    const getAliOssClient = async () => {
+      if (ossClient) return ossClient;
+      const data = await getOSSToken();
+      ossClient = new OSS({
+        region: data.region,
+        bucket: data.bucket,
+        accessKeyId: data.accessKeyId,
+        accessKeySecret: data.accessKeySecret,
+        stsToken: data.securityToken,
+        authorizationV4: true,
+        timeout: 60000,
+        refreshSTSToken: async () => {
+          const info = await getOSSToken();
+          return {
+            accessKeyId: info.accessKeyId,
+            accessKeySecret: info.accessKeySecret,
+            stsToken: info.securityToken
+          };
+        },
+        refreshSTSTokenInterval: 300000, // 5分钟刷新
+        secure: true
+      });
+      return ossClient;
+    };
+
+    // 列出文件
+    const listFiles = async (prefix = '') => {
+      try {
+        currentPath = prefix;
+        updateBreadcrumb(prefix);
+
+        const container = document.getElementById('file-list-container');
+        container.innerHTML = '<div class="loading">加载中...</div>';
+
+        const client = await getAliOssClient();
+        let result = await client.list({
+          prefix: prefix,
+          delimiter: '/',
+          'max-keys': 100
+        });
+
+        // 处理文件夹和文件
+        let content = '<ul class="file-list">';
+
+        // 1. 显示上级目录链接（如果不是根目录）
+        if (prefix) {
+          const parentPath = prefix.replace(/[^\/]+\/$/, '');
+          content += `
+                <li class="file-item" onclick="listFiles('${parentPath}')">
+                    <div class="file-icon">📁</div>
+                    <div class="file-name">.. (上级目录)</div>
+                    <div class="file-size"></div>
+                    <div class="file-actions"></div>
+                </li>
+            `;
+        }
+
+        // 2. 安全处理子文件夹（修复错误的核心部分）
+        const folders = result.prefixes || []; // 确保始终是数组
+        folders.forEach(folder => {
+          content += `
+                <li class="file-item" onclick="listFiles('${folder}')">
+                    <div class="file-icon folder-icon">📁</div>
+                    <div class="file-name">${folder.replace(prefix, '').replace(/\/$/, '')}</div>
+                    <div class="file-size">-</div>
+                    <div class="file-actions"></div>
+                </li>
+            `;
+        });
+
+        // 3. 安全处理文件列表
+        const files = result.objects || []; // 确保始终是数组
+        files.forEach(file => {
+          // 跳过目录标记（以/结尾的条目）
+          if (file.name.endsWith('/')) return;
+
+          const fileName = file.name.replace(prefix, '');
+          const fileUrl = client.signatureUrl(file.name);
+          const fileSize = formatFileSize(file.size);
+
+          content += `
+                <li class="file-item">
+                    <div class="file-icon">📄</div>
+                    <div class="file-name">${fileName}</div>
+                    <div class="file-size">${fileSize}</div>
+                    <div class="file-actions">
+                        <a href="${fileUrl}" target="_blank">查看</a>
+                        <a href="${fileUrl}" download>下载</a>
+                    </div>
+                </li>
+            `;
+        });
+
+        content += '</ul>';
+
+        // 如果没有内容，显示提示
+        if (folders.length === 0 && files.filter(f => !f.name.endsWith('/')).length === 0) {
+          content = '<div class="empty">当前目录为空</div>';
+        }
+
+        container.innerHTML = content;
+
+      } catch (error) {
+        console.error('列出文件失败:', error);
+        document.getElementById('file-list-container').innerHTML = `
+            <div class="error">
+                <strong>加载失败:</strong> ${error.message}<br>
+                ${error.code ? `错误代码: ${error.code}` : ''}
+            </div>
+        `;
+      }
+    };
+
+    // 更新面包屑导航
+    const updateBreadcrumb = (prefix) => {
+      const parts = prefix.split('/').filter(p => p);
+      let breadcrumb = '<a href="javascript:void(0)" onclick="listFiles(\'\')">根目录</a>';
+
+      let currentPath = '';
+      parts.forEach(part => {
+        currentPath += part + '/';
+        breadcrumb += ` / <a href="javascript:void(0)" onclick="listFiles('${currentPath}')">${part}</a>`;
+      });
+
+      document.getElementById('breadcrumb').innerHTML = breadcrumb;
+    };
+
+    // 格式化文件大小
+    const formatFileSize = (bytes) => {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    };
+
+    // 初始化加载根目录
+    window.onload = () => listFiles('');
+  </script>
+</body>
+
+</html>

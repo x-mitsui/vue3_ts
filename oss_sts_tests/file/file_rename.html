@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>OSS文件改名示例</title>
+  <meta charset="UTF-8">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    button {
+      padding: 10px 15px;
+      margin: 5px;
+      background: #2196F3;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:disabled {
+      background: #cccccc;
+    }
+
+    input {
+      padding: 8px;
+      width: 300px;
+      margin-bottom: 10px;
+    }
+
+    #status {
+      margin-top: 20px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+
+    .error {
+      background: #ffebee;
+      color: #d32f2f;
+    }
+
+    .success {
+      background: #e8f5e9;
+      color: #388e3c;
+    }
+  </style>
+</head>
+
+<body>
+  <h2>OSS文件改名演示</h2>
+  <div>
+    <div>
+      <input type="text" id="sourcePath"
+        placeholder="原文件路径（如：source_ark_web_assets/dynamic_assets/commodity/20144/img.png）">
+    </div>
+    <div>
+      <input type="text" id="targetPath"
+        placeholder="新文件路径（如：source_ark_web_assets/dynamic_assets/commodity/20144/img2.png）">
+    </div>
+    <button onclick="renameFile()">执行改名</button>
+  </div>
+  <div id="status">准备就绪</div>
+
+  <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
+  <script>
+    // 全局OSS客户端实例
+    let ossClient = null;
+
+    // 获取STS临时凭证（与删除示例保持一致）
+    const getOSSToken = async () => {
+      const res = await fetch('http://192.168.9.47:3001/cms/file/sts');
+      const data = await res.json();
+
+      // 检查Token有效期
+      const expiresIn = new Date(data.data.expiration).getTime() - Date.now();
+      if (expiresIn <= 0) {
+        throw new Error('STS Token已过期');
+      }
+      return data.data;
+    };
+
+    // 初始化OSS客户端
+    const getAliOssClient = async () => {
+      if (ossClient) return ossClient;
+      const data = await getOSSToken();
+
+      ossClient = new OSS({
+        region: data.region || 'oss-cn-beijing',
+        bucket: data.bucket,
+        accessKeyId: data.accessKeyId,
+        accessKeySecret: data.accessKeySecret,
+        stsToken: data.securityToken,
+        refreshSTSToken: async () => {
+          const newToken = await getOSSToken();
+          return {
+            accessKeyId: newToken.accessKeyId,
+            accessKeySecret: newToken.accessKeySecret,
+            stsToken: newToken.securityToken
+          };
+        },
+        secure: true
+      });
+
+      return ossClient;
+    };
+
+    // 核心改名逻辑
+    const renameFile = async () => {
+      const sourcePath = document.getElementById('sourcePath').value.trim();
+      const targetPath = document.getElementById('targetPath').value.trim();
+
+      if (!sourcePath || !targetPath) {
+        updateStatus('请填写原文件路径和新文件路径', 'error');
+        return;
+      }
+
+      try {
+        updateStatus('正在执行改名操作...');
+        const client = await getAliOssClient();
+
+        // 1. 检查原文件是否存在
+        try {
+          await client.getObjectMeta(sourcePath);
+        } catch (error) {
+          if (error.code === 'NoSuchKey') {
+            updateStatus(`原文件不存在: ${sourcePath}`, 'error');
+            return;
+          }
+          throw error;
+        }
+
+        // 2. 检查目标文件是否已存在（避免覆盖）
+        try {
+          await client.getObjectMeta(targetPath);
+          updateStatus(`目标文件已存在: ${targetPath}（请删除或换名）`, 'error');
+          return;
+        } catch (error) {
+          // 目标文件不存在是预期情况
+          if (error.code !== 'NoSuchKey') throw error;
+        }
+
+        // 3. 执行复制+删除（OSS没有直接改名API）
+        await client.copy(targetPath, sourcePath);
+        await client.delete(sourcePath);
+
+        updateStatus(`改名成功: ${sourcePath} → ${targetPath}`, 'success');
+
+      } catch (error) {
+        console.error('改名失败:', error);
+
+        let errorMessage = error.message;
+        if (error.code === 'AccessDenied') {
+          errorMessage = '权限不足（检查STS Policy是否包含oss:GetObject和oss:PutObject权限）';
+        } else if (error.code === 'RequestTimeTooSkewed') {
+          errorMessage = '系统时间不同步（请校准时间）';
+        }
+
+        updateStatus(`改名失败: ${errorMessage}`, 'error');
+      }
+    };
+
+    // 更新状态显示
+    const updateStatus = (message, type = '') => {
+      const statusDiv = document.getElementById('status');
+      statusDiv.textContent = message;
+      statusDiv.className = type;
+    };
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>OSS断点续传上传</title>
+  <style>
+    .progress-container {
+      width: 100%;
+      background-color: #f1f1f1;
+      border-radius: 5px;
+      margin: 10px 0;
+    }
+
+    .progress-bar {
+      height: 20px;
+      background-color: #4CAF50;
+      border-radius: 5px;
+      text-align: center;
+      line-height: 20px;
+      color: white;
+    }
+  </style>
+</head>
+
+<body>
+  <input type="file" id="fileInput">
+  <button onclick="startUpload()">开始上传</button>
+  <button onclick="pauseUpload()" disabled id="pauseBtn">暂停</button>
+  <button onclick="resumeUpload()" disabled id="resumeBtn">继续</button>
+  <button onclick="cancelUpload()" disabled id="cancelBtn">取消</button>
+  <div class="progress-container">
+    <div id="progressBar" class="progress-bar" style="width:0%">0%</div>
+  </div>
+  <div id="statusText">准备上传...</div>
+
+  <script src="https://gosspublic.alicdn.com/aliyun-oss-sdk-6.18.0.min.js"></script>
+  <script>
+    // 全局状态控制
+    let isUploading = false;
+    let isPaused = false;
+    let isCancelled = false;
+    let currentUpload = {
+      file: null,
+      fileKey: '',
+      uploadId: '',
+      uploadedParts: [],
+      nextPartNumber: 1,
+      partSize: 5 * 1024 * 1024 // 5MB分片
+    };
+    let activeRequests = new Set(); // 跟踪活跃请求
+    let ossClient = null;
+
+    // 获取STS Token
+    const getOSSToken = async () => {
+      const res = await fetch('http://192.168.9.47:3001/cms/file/sts');
+      const data = await res.json();
+      console.log(data);
+
+      // 检查Token有效期
+      const expiresIn = new Date(data.data.expiration).getTime() - Date.now();
+      console.log(`Token剩余有效期: ${expiresIn / 1000}秒`);
+
+      if (expiresIn <= 0) {
+        throw new Error('STS Token已过期');
+      }
+      return data.data;
+    };
+
+    // 初始化OSS客户端
+    const getAliOssClient = async () => {
+      if (ossClient) return ossClient;
+      const data = await getOSSToken();
+      ossClient = new OSS({
+        region: data.region,
+        bucket: data.bucket,
+        accessKeyId: data.accessKeyId,
+        accessKeySecret: data.accessKeySecret,
+        stsToken: data.securityToken,
+        authorizationV4: true,
+        timeout: 60000,
+        refreshSTSToken: async () => {
+          const info = await getOSSToken();
+          return {
+            accessKeyId: info.accessKeyId,
+            accessKeySecret: info.accessKeySecret,
+            stsToken: info.securityToken
+          };
+        },
+        refreshSTSTokenInterval: 300000, // 5分钟刷新
+        secure: true
+      });
+      return ossClient;
+    };
+
+    // 更新进度显示
+    function updateProgress(uploadedSize, totalSize) {
+      const percent = Math.round((uploadedSize / totalSize) * 100);
+      document.getElementById('progressBar').style.width = percent + '%';
+      document.getElementById('progressBar').textContent = percent + '%';
+      document.getElementById('statusText').textContent =
+        `已上传: ${formatBytes(uploadedSize)} / ${formatBytes(totalSize)}`;
+    }
+
+    // 格式化字节大小
+    function formatBytes(bytes) {
+      if (bytes === 0) return '0 Bytes';
+      const k = 1024;
+      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // 重置状态
+    function resetUploadState() {
+      isUploading = false;
+      isPaused = false;
+      isCancelled = false;
+      currentUpload = {
+        file: null,
+        fileKey: '',
+        uploadId: '',
+        uploadedParts: [],
+        nextPartNumber: 1,
+        partSize: 5 * 1024 * 1024
+      };
+      activeRequests.clear();
+
+      document.getElementById('pauseBtn').disabled = true;
+      document.getElementById('resumeBtn').disabled = true;
+      document.getElementById('cancelBtn').disabled = true;
+    }
+
+    // 小文件直接上传
+    async function uploadSmallFile() {
+      try {
+        const client = await getAliOssClient();
+        document.getElementById('statusText').textContent = '小文件直接上传中...';
+
+        const result = await client.put(currentUpload.fileKey, currentUpload.file);
+
+        console.log('小文件上传成功:', result);
+        document.getElementById('statusText').textContent = '上传完成! 文件地址: ' + result.name;
+        document.getElementById('progressBar').style.width = '100%';
+        document.getElementById('progressBar').style.backgroundColor = '#2196F3';
+      } catch (err) {
+        console.error('小文件上传出错:', err);
+        document.getElementById('statusText').textContent = '上传出错: ' + err.message;
+      }
+    }
+
+    // 开始上传
+    async function startUpload() {
+      const fileInput = document.getElementById('fileInput');
+      if (!fileInput.files.length) {
+        alert('请先选择文件');
+        return;
+      }
+
+      if (isUploading) return;
+
+      resetUploadState();
+      currentUpload.file = fileInput.files[0];
+      currentUpload.fileKey = 'source_ark_web_assets/dynamic_assets/commodity/20144/' + currentUpload.file.name;
+
+      document.getElementById('pauseBtn').disabled = false;
+      document.getElementById('cancelBtn').disabled = false;
+      document.getElementById('statusText').textContent = '准备上传...';
+
+      // 小于5MB的文件直接上传
+      if (currentUpload.file.size < 5 * 1024 * 1024) {
+        await uploadSmallFile();
+        return;
+      }
+
+      await uploadWithResume();
+    }
+
+    // 暂停上传
+    function pauseUpload() {
+      if (!isUploading) return;
+      isPaused = true;
+      document.getElementById('pauseBtn').disabled = true;
+      document.getElementById('resumeBtn').disabled = false;
+      document.getElementById('statusText').textContent = '上传已暂停';
+      console.log('上传已暂停');
+    }
+
+    // 继续上传
+    function resumeUpload() {
+      if (isUploading || !isPaused) return;
+      isPaused = false;
+      document.getElementById('pauseBtn').disabled = false;
+      document.getElementById('resumeBtn').disabled = true;
+      document.getElementById('statusText').textContent = '继续上传...';
+      console.log('继续上传...');
+      uploadWithResume();
+    }
+
+    // 取消上传
+    async function cancelUpload() {
+      if (!isUploading && !isPaused) return;
+
+      isCancelled = true;
+      activeRequests.clear();
+
+      try {
+        const client = await getAliOssClient();
+        if (currentUpload.uploadId) {
+          await client.abortMultipartUpload(currentUpload.fileKey, currentUpload.uploadId);
+          console.log('已终止分片上传任务');
+        }
+      } catch (err) {
+        console.error('终止上传出错:', err);
+      }
+
+      document.getElementById('statusText').textContent = '上传已取消';
+      document.getElementById('pauseBtn').disabled = true;
+      document.getElementById('resumeBtn').disabled = true;
+      document.getElementById('cancelBtn').disabled = true;
+
+      localStorage.removeItem(currentUpload.fileKey);
+      console.log('上传已完全取消');
+      resetUploadState();
+    }
+
+    // 核心上传逻辑
+    async function uploadWithResume() {
+      try {
+        isUploading = true;
+        const client = await getAliOssClient();
+
+        // 检查是否有未完成的上传任务
+        const savedUpload = localStorage.getItem(currentUpload.fileKey);
+        if (savedUpload) {
+          const { uploadId, uploadedParts } = JSON.parse(savedUpload);
+          currentUpload.uploadId = uploadId;
+          currentUpload.uploadedParts = uploadedParts;
+          currentUpload.nextPartNumber = uploadedParts.length + 1;
+
+          // 计算已上传大小
+          const uploadedSize = uploadedParts.reduce((sum, part) => sum + part.size, 0);
+          updateProgress(uploadedSize, currentUpload.file.size);
+          document.getElementById('statusText').textContent = '恢复上传...';
+        } else {
+          // 初始化分片上传
+          const result = await client.initMultipartUpload(currentUpload.fileKey);
+          currentUpload.uploadId = result.uploadId;
+
+          localStorage.setItem(currentUpload.fileKey, JSON.stringify({
+            fileKey: currentUpload.fileKey,
+            uploadId: currentUpload.uploadId,
+            uploadedParts: [],
+            fileSize: currentUpload.file.size
+          }));
+          updateProgress(0, currentUpload.file.size);
+        }
+
+        // 上传剩余分片
+        while (currentUpload.nextPartNumber <= Math.ceil(currentUpload.file.size / currentUpload.partSize) && !isPaused && !isCancelled) {
+          const partNumber = currentUpload.nextPartNumber;
+          const start = (partNumber - 1) * currentUpload.partSize;
+          const end = Math.min(start + currentUpload.partSize, currentUpload.file.size);
+          const blob = currentUpload.file.slice(start, end);
+
+          const requestId = `part-${partNumber}-${Date.now()}`;
+          activeRequests.add(requestId);
+
+          try {
+            document.getElementById('statusText').textContent = `上传分片 ${partNumber}...`;
+
+            const result = await client.uploadPart(
+              currentUpload.fileKey,
+              currentUpload.uploadId,
+              partNumber,
+              blob
+            );
+
+            // 检查是否已被取消
+            if (isCancelled || !activeRequests.has(requestId)) {
+              console.log('分片上传已被取消');
+              return;
+            }
+
+            // 记录已上传分片
+            currentUpload.uploadedParts.push({
+              number: partNumber,
+              etag: result.etag,
+              size: end - start
+            });
+
+            // 更新进度
+            const uploadedSize = currentUpload.uploadedParts.reduce((sum, part) => sum + part.size, 0);
+            updateProgress(uploadedSize, currentUpload.file.size);
+
+            // 保存进度到本地存储
+            localStorage.setItem(currentUpload.fileKey, JSON.stringify({
+              fileKey: currentUpload.fileKey,
+              uploadId: currentUpload.uploadId,
+              uploadedParts: currentUpload.uploadedParts,
+              fileSize: currentUpload.file.size
+            }));
+
+            currentUpload.nextPartNumber++;
+          } finally {
+            activeRequests.delete(requestId);
+          }
+        }
+
+        // 完成处理
+        if (currentUpload.nextPartNumber > Math.ceil(currentUpload.file.size / currentUpload.partSize) && !isCancelled) {
+          await completeUpload();
+        } else if (isPaused && !isCancelled) {
+          isUploading = false;
+          document.getElementById('statusText').textContent = '上传已暂停';
+        }
+      } catch (err) {
+        if (!isCancelled) {
+          console.error('上传出错:', err);
+          document.getElementById('statusText').textContent = '上传出错: ' + err.message;
+
+          // 如果是分片太小错误，转为普通上传
+          if (err.code === 'EntityTooSmall') {
+            document.getElementById('statusText').textContent = '文件太小，转为普通上传...';
+            await uploadSmallFile();
+          }
+        }
+        isUploading = false;
+      }
+    }
+
+    // 完成上传
+    async function completeUpload() {
+      try {
+        const client = await getAliOssClient();
+        document.getElementById('statusText').textContent = '正在完成上传...';
+
+        // 检查是否有足够的分片
+        if (currentUpload.uploadedParts.length === 0) {
+          throw new Error('没有需要完成的分片');
+        }
+
+        // 按分片编号排序
+        currentUpload.uploadedParts.sort((a, b) => a.number - b.number);
+
+        // 完成分片上传
+        const result = await client.completeMultipartUpload(
+          currentUpload.fileKey,
+          currentUpload.uploadId,
+          currentUpload.uploadedParts.map(part => ({
+            number: part.number,
+            etag: part.etag
+          }))
+        );
+
+        console.log('上传完成:', result);
+        document.getElementById('statusText').textContent = '上传完成! 文件地址: ' + result.name;
+        document.getElementById('progressBar').style.backgroundColor = '#2196F3';
+
+        // 清理本地存储
+        localStorage.removeItem(currentUpload.fileKey);
+        resetUploadState();
+      } catch (err) {
+        console.error('完成上传出错:', err);
+        document.getElementById('statusText').textContent = '完成上传出错: ' + err.message;
+        isUploading = false;
+      }
+    }
+  </script>
+</body>
+
+</html>
